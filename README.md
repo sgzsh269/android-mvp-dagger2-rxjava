@@ -1,4 +1,4 @@
-### Sample app to show basics of Model-View-Presenter (MVP) architectural pattern as described in [my blog article](https://medium.com/@shah.sagar.nilesh/android-mvp-basics-w-sample-app-3698e33ab9db).
+### Sample app to show basics of MVP with Dagger 2.
 
 ### The sample app fetches and displays the interesting photos and their comments for the most recent day from the [Flickr API](https://www.flickr.com/services/api/).
 
