@@ -51,8 +51,9 @@ public class PhotoPresenterTest {
     @Before
     public void setup() {
 
-        photosPresenter = new PhotosPresenter(mockView, mockDataRepository, mockThreadExecutor,
-                mockMainUiThread);
+// TODO
+//        photosPresenter = new PhotosPresenter(mockView, mockDataRepository, mockThreadExecutor,
+//                mockMainUiThread);
 
     }
 

@@ -24,22 +24,11 @@ public class DataRepository {
     private DataSource localDataSource;
     private NetworkHelper networkHelper;
 
-    private static DataRepository dataRepository;
-
     public DataRepository(DataSource remoteDataSource, DataSource localDataSource,
             NetworkHelper networkHelper) {
         this.remoteDataSource = remoteDataSource;
         this.localDataSource = localDataSource;
         this.networkHelper = networkHelper;
-    }
-
-    public static synchronized DataRepository getInstance(DataSource remoteDataSource,
-            DataSource localDataSource,
-            NetworkHelper networkHelper) {
-        if (dataRepository == null) {
-            dataRepository = new DataRepository(remoteDataSource, localDataSource, networkHelper);
-        }
-        return dataRepository;
     }
 
     public void getPhotos(Context context, int page, final DataSource.GetPhotosCallback callback) {
@@ -89,9 +78,5 @@ public class DataRepository {
         } else {
             localDataSource.getComments(photo.getId(), callback);
         }
-    }
-
-    public void destroyInstance() {
-        dataRepository = null;
     }
 }

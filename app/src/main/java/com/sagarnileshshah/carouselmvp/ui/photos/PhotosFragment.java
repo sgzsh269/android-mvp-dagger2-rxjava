@@ -13,29 +13,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
-import com.raizlabs.android.dbflow.config.DatabaseDefinition;
-import com.raizlabs.android.dbflow.config.FlowManager;
 import com.sagarnileshshah.carouselmvp.R;
-import com.sagarnileshshah.carouselmvp.data.DataRepository;
-import com.sagarnileshshah.carouselmvp.data.local.LocalDatabase;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
-import com.sagarnileshshah.carouselmvp.di.Injection;
 import com.sagarnileshshah.carouselmvp.ui.photodetail.PhotoDetailFragment;
 import com.sagarnileshshah.carouselmvp.util.BaseFragmentInteractionListener;
+import com.sagarnileshshah.carouselmvp.util.EndlessRecyclerViewScrollListener;
 import com.sagarnileshshah.carouselmvp.util.ItemClickSupport;
 import com.sagarnileshshah.carouselmvp.util.Properties;
 import com.sagarnileshshah.carouselmvp.util.mvp.BaseView;
-import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
-import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
-import com.sagarnileshshah.carouselmvp.util.EndlessRecyclerViewScrollListener;
 
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * The {@link Fragment} that receives photo data from its {@link PhotosContract.Presenter} and
@@ -59,24 +54,29 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
     private PhotosRecyclerAdapter recyclerAdapter;
     private List<Photo> photos;
     private EndlessRecyclerViewScrollListener endlessScrollListener;
-    private PhotosContract.Presenter presenter;
-    private boolean isCreated;
     private BaseFragmentInteractionListener fragmentInteractionListener;
     private boolean shouldRefreshPhotos;
 
+    @Inject
+    PhotosContract.Presenter presenter;
+
+    private PhotosComponent photosComponent;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         photos = new ArrayList<>();
-        ThreadExecutor threadExecutor = ThreadExecutor.getInstance();
-        MainUiThread mainUiThread = MainUiThread.getInstance();
-        DatabaseDefinition databaseDefinition = FlowManager.getDatabase(LocalDatabase.class);
-        DataRepository dataRepository = Injection.provideDataRepository(mainUiThread,
-                threadExecutor, databaseDefinition);
-        presenter = new PhotosPresenter(this, dataRepository, threadExecutor, mainUiThread);
-        isCreated = true;
         setRetainInstance(true);
+        initPhotosComponent();
+    }
+
+    private void initPhotosComponent() {
+        photosComponent = DaggerPhotosComponent.builder()
+                .applicationComponent(fragmentInteractionListener.getApplicationComponent())
+                .photosModule(new PhotosModule(this))
+                .build();
+
+        photosComponent.inject(this);
     }
 
     @Override
@@ -122,6 +122,8 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
         });
 
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimaryDark, R.color.colorPrimary);
+
+        getPhotos(STARTING_PAGE_INDEX);
     }
 
     @Override
@@ -158,11 +160,6 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
     public void onResume() {
         super.onResume();
         presenter.onViewActive(this);
-        if (isCreated) {
-            getPhotos(STARTING_PAGE_INDEX);
-            isCreated = false;
-        }
-
         fragmentInteractionListener.resetToolBarScroll();
     }
 

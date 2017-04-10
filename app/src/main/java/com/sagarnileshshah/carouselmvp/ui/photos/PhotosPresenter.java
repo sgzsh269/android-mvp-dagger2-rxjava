@@ -6,11 +6,14 @@ import com.sagarnileshshah.carouselmvp.R;
 import com.sagarnileshshah.carouselmvp.data.DataRepository;
 import com.sagarnileshshah.carouselmvp.data.DataSource;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
+import com.sagarnileshshah.carouselmvp.util.di.FragmentScope;
 import com.sagarnileshshah.carouselmvp.util.mvp.BasePresenter;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
 import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 /**
  * The Presenter that fetches photo data by calling {@link DataRepository} at the request of

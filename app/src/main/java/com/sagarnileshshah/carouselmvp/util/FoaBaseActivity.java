@@ -1,7 +1,6 @@
 package com.sagarnileshshah.carouselmvp.util;
 
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -9,7 +8,10 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
+import com.sagarnileshshah.carouselmvp.ApplicationComponent;
 import com.sagarnileshshah.carouselmvp.R;
+
+import javax.inject.Inject;
 
 /**
  * The abstract base container responsible for showing and destroying {@link Fragment} and handling
@@ -18,14 +20,18 @@ import com.sagarnileshshah.carouselmvp.R;
  * http://vinsol.com/blog/2014/09/15/advocating-fragment-oriented-applications-in-android/
  */
 public abstract class FoaBaseActivity extends AppCompatActivity implements
-        FragmentManager.OnBackStackChangedListener {
+        FragmentManager.OnBackStackChangedListener, BaseFragmentInteractionListener {
 
+    @Inject
+    public NetworkHelper networkHelper;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         getSupportFragmentManager().addOnBackStackChangedListener(this);
+
+        initApplicationComponent();
     }
 
     public <T extends Fragment> void showFragment(Class<T> fragmentClass, Bundle bundle,
@@ -94,6 +100,14 @@ public abstract class FoaBaseActivity extends AppCompatActivity implements
         shouldShowActionBarUpButton();
     }
 
+    @Override
+    public ApplicationComponent getApplicationComponent() {
+        return ((BaseApplication) getApplication()).getApplicationComponent();
+    }
+
+    private void initApplicationComponent() {
+        ((BaseApplication) getApplication()).getApplicationComponent().inject(this);
+    }
 }
 
 

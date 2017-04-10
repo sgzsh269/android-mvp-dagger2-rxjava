@@ -52,6 +52,8 @@ ext {
     junitVersion = "4.12"
     mockitoVersion = "2.7.19"
     espressoCoreVersion = "2.2.2"
+    daggerVersion = "2.9"
+    jsrVersion = "1.0"
 }
 
 dependencies {
@@ -74,6 +76,7 @@ dependencies {
     compile "com.google.code.gson:gson:${gsonVersion}"
     compile "org.parceler:parceler-api:${parcelerVersion}"
     compile "com.github.Raizlabs.DBFlow:dbflow:${dbflowVersion}"
+    compile "com.google.dagger:dagger:${daggerVersion}"
 
 
     testCompile "junit:junit:${junitVersion}"
@@ -87,5 +90,8 @@ dependencies {
     annotationProcessor "com.github.Raizlabs.DBFlow:dbflow-processor:${dbflowVersion}"
     annotationProcessor "com.jakewharton:butterknife-compiler:${butterKnifeVersion}"
     annotationProcessor "org.parceler:parceler:${parcelerVersion}"
+    annotationProcessor "com.google.dagger:dagger-compiler:${daggerVersion}"
+
+    provided "javax.annotation:jsr250-api:${jsrVersion}"
 }
 

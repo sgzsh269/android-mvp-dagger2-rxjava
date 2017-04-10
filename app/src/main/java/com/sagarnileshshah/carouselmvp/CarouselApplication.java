@@ -1,18 +1,20 @@
 package com.sagarnileshshah.carouselmvp;
 
-import android.app.Application;
+import com.sagarnileshshah.carouselmvp.util.BaseApplication;
 
-import com.facebook.stetho.Stetho;
-import com.raizlabs.android.dbflow.config.FlowConfig;
-import com.raizlabs.android.dbflow.config.FlowManager;
+public class CarouselApplication extends BaseApplication {
 
-public class CarouselApplication extends Application {
+    private ApplicationComponent applicationComponent;
+
     @Override
-    public void onCreate() {
-        super.onCreate();
-        FlowManager.init(new FlowConfig.Builder(this).build());
-        if (BuildConfig.DEBUG) {
-            Stetho.initializeWithDefaults(this);
-        }
+    public ApplicationComponent getApplicationComponent() {
+        return applicationComponent;
+    }
+
+    @Override
+    public void initApplicationComponent() {
+        applicationComponent = DaggerApplicationComponent.builder()
+                .applicationModule(new ApplicationModule(this))
+                .build();
     }
 }

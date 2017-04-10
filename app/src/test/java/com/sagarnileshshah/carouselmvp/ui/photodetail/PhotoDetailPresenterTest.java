@@ -50,10 +50,10 @@ public class PhotoDetailPresenterTest {
 
     @Before
     public void setup() {
-
-        photoDetailPresenter = new PhotoDetailPresenter(mockView, mockDataRepository,
-                mockThreadExecutor, mockMainUiThread);
-        photo = new Photo();
+// TODO
+//        photoDetailPresenter = new PhotoDetailPresenter(mockView, mockDataRepository,
+//                mockThreadExecutor, mockMainUiThread);
+//        photo = new Photo();
 
     }
 

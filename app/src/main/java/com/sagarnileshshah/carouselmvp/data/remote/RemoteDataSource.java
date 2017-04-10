@@ -31,26 +31,13 @@ public class RemoteDataSource extends DataSource {
     public static final String QUERY_PARAM_VALUE_PER_PAGE = "10";
     public static final String QUERY_PARAM_PAGE = "page";
 
-
-    private static RemoteDataSource remoteDataSource;
-
     private ApiService apiService;
 
-    private RemoteDataSource(MainUiThread mainUiThread,
+    public RemoteDataSource(MainUiThread mainUiThread,
             ThreadExecutor threadExecutor, ApiService apiService) {
         super(mainUiThread, threadExecutor);
         this.apiService = apiService;
 
-    }
-
-    public static synchronized RemoteDataSource getInstance(MainUiThread mainUiThread,
-            ThreadExecutor threadExecutor,
-            ApiService apiService) {
-        if (remoteDataSource == null) {
-
-            remoteDataSource = new RemoteDataSource(mainUiThread, threadExecutor, apiService);
-        }
-        return remoteDataSource;
     }
 
     @Override

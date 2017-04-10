@@ -1,5 +1,7 @@
 package com.sagarnileshshah.carouselmvp.ui.photodetail;
 
+import static com.sagarnileshshah.carouselmvp.util.Properties.PHOTO_URL;
+
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -12,31 +14,24 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 import com.bumptech.glide.Glide;
-import com.raizlabs.android.dbflow.config.DatabaseDefinition;
-import com.raizlabs.android.dbflow.config.FlowManager;
 import com.sagarnileshshah.carouselmvp.R;
-import com.sagarnileshshah.carouselmvp.data.DataRepository;
-import com.sagarnileshshah.carouselmvp.data.local.LocalDatabase;
 import com.sagarnileshshah.carouselmvp.data.models.comment.Comment;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
-import com.sagarnileshshah.carouselmvp.di.Injection;
 import com.sagarnileshshah.carouselmvp.util.BaseFragmentInteractionListener;
 import com.sagarnileshshah.carouselmvp.util.EndlessRecyclerViewScrollListener;
 import com.sagarnileshshah.carouselmvp.util.Properties;
 import com.sagarnileshshah.carouselmvp.util.mvp.BaseView;
-import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
-import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.sagarnileshshah.carouselmvp.util.Properties.PHOTO_URL;
+import javax.inject.Inject;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * The {@link Fragment} that receives photo data from
@@ -58,12 +53,16 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
     @BindView(R.id.tvPlaceholder)
     TextView tvPlaceholder;
 
+    @Inject
+    PhotoDetailContract.Presenter presenter;
+
     private CommentsRecyclerAdapter recyclerAdapter;
     private EndlessRecyclerViewScrollListener endlessScrollListener;
-    private PhotoDetailContract.Presenter presenter;
     private Photo photo;
     private List<Comment> comments;
     private BaseFragmentInteractionListener fragmentInteractionListener;
+    private PhotoDetailComponent photoDetailComponent;
+
 
     public PhotoDetailFragment() {
     }
@@ -74,14 +73,18 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
         if (getArguments() != null) {
             photo = Parcels.unwrap(getArguments().getParcelable(Properties.BUNDLE_KEY_PHOTO));
         }
-        ThreadExecutor threadExecutor = ThreadExecutor.getInstance();
-        MainUiThread mainUiThread = MainUiThread.getInstance();
-        DatabaseDefinition databaseDefinition = FlowManager.getDatabase(LocalDatabase.class);
-        DataRepository dataRepository = Injection.provideDataRepository(mainUiThread,
-                threadExecutor, databaseDefinition);
-        presenter = new PhotoDetailPresenter(this, dataRepository, threadExecutor, mainUiThread);
         comments = new ArrayList<>();
         setRetainInstance(true);
+        initPhotoDetailComponent();
+    }
+
+    public void initPhotoDetailComponent() {
+        photoDetailComponent = DaggerPhotoDetailComponent.builder()
+                .applicationComponent(fragmentInteractionListener.getApplicationComponent())
+                .photoDetailModule(new PhotoDetailModule(this))
+                .build();
+
+        photoDetailComponent.inject(this);
     }
 
     @Override
@@ -143,8 +146,7 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
     @Override
     public void showComments(List<Comment> comments) {
         if (comments != null) {
-            this.comments.addAll(comments);
-            recyclerAdapter.notifyItemRangeInserted(this.comments.size(), comments.size());
+            recyclerAdapter.addAll(comments);
         }
     }
 

@@ -15,28 +15,20 @@ import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * The class for fetching from and storing data into a local SQLite DB on a background thread and
  * returning data via callbacks on the main UI thread
  */
 public class LocalDataSource extends DataSource {
 
-    private static LocalDataSource localDataSource;
-
     private DatabaseDefinition databaseDefinition;
 
-    private LocalDataSource(MainUiThread mainUiThread, ThreadExecutor threadExecutor,
+    public LocalDataSource(MainUiThread mainUiThread, ThreadExecutor threadExecutor,
             DatabaseDefinition databaseDefinition) {
         super(mainUiThread, threadExecutor);
         this.databaseDefinition = databaseDefinition;
-    }
-
-    public static synchronized LocalDataSource getInstance(MainUiThread mainUiThread,
-            ThreadExecutor threadExecutor, DatabaseDefinition databaseDefinition) {
-        if (localDataSource == null) {
-            localDataSource = new LocalDataSource(mainUiThread, threadExecutor, databaseDefinition);
-        }
-        return localDataSource;
     }
 
     @Override

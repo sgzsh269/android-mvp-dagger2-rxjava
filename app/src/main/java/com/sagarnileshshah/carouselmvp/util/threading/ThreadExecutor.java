@@ -7,7 +7,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * a singleton wrapper around {@link ThreadPoolExecutor} that helps to post work on a background
+ * A wrapper around {@link ThreadPoolExecutor} that helps to post work on a background
  * worker thread.
  */
 public class ThreadExecutor {
@@ -19,12 +19,9 @@ public class ThreadExecutor {
     private static final TimeUnit TIME_UNIT = TimeUnit.SECONDS;
     private static final BlockingQueue<Runnable> WORK_QUEUE = new LinkedBlockingQueue<Runnable>();
 
-
-    private static volatile ThreadExecutor threadExecutor;
-
     private ThreadPoolExecutor threadPoolExecutor;
 
-    private ThreadExecutor() {
+    public ThreadExecutor() {
         threadPoolExecutor = new ThreadPoolExecutor(
                 CORE_POOL_SIZE,
                 MAX_POOL_SIZE,
@@ -33,13 +30,6 @@ public class ThreadExecutor {
                 WORK_QUEUE);
     }
 
-    public static synchronized ThreadExecutor getInstance() {
-        if (threadExecutor == null) {
-            threadExecutor = new ThreadExecutor();
-        }
-
-        return threadExecutor;
-    }
 
     public Future<?> execute(Runnable runnable) {
         return threadPoolExecutor.submit(runnable);

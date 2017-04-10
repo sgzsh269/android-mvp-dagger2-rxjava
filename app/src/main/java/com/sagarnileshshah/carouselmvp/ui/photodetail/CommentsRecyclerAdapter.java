@@ -69,5 +69,16 @@ public class CommentsRecyclerAdapter extends
         return comments.size();
     }
 
+    public void clear() {
+        int size = getItemCount();
+        comments.clear();
+        notifyItemRangeRemoved(0, size);
+    }
+
+    public void addAll(List<Comment> comments) {
+        int prevSize = getItemCount();
+        this.comments.addAll(comments);
+        notifyItemRangeInserted(prevSize, comments.size());
+    }
 
 }

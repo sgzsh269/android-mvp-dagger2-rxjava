@@ -50,13 +50,13 @@ public class DataRepositoryTest {
 
     @Before
     public void setup() {
-        dataRepository = DataRepository.getInstance(mockRemoteDataSource, mockLocalDataSource,
-                mockNetworkHelper);
+        // TODO
+        dataRepository = null;
     }
 
     @After
     public void tearDown() {
-        dataRepository.destroyInstance();
+        // TODO dataRepository.destroyInstance();
     }
 
     @Test
