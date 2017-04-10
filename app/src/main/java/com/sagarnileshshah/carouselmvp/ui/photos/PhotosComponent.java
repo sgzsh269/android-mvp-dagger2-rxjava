@@ -9,7 +9,7 @@ import dagger.Component;
 @Component(
         dependencies = {ApplicationComponent.class},
         modules = {PhotosModule.class}
-)
+        )
 public interface PhotosComponent {
 
     PhotosContract.Presenter getPhotosPresenter();

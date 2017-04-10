@@ -1,5 +1,10 @@
 package com.sagarnileshshah.carouselmvp.data;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import android.content.Context;
 
 import com.sagarnileshshah.carouselmvp.data.local.LocalDataSource;
@@ -7,7 +12,6 @@ import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
 import com.sagarnileshshah.carouselmvp.data.remote.RemoteDataSource;
 import com.sagarnileshshah.carouselmvp.util.NetworkHelper;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,12 +22,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataRepositoryTest {
@@ -50,13 +48,9 @@ public class DataRepositoryTest {
 
     @Before
     public void setup() {
-        // TODO
-        dataRepository = null;
-    }
+        dataRepository = new DataRepository(mockRemoteDataSource, mockLocalDataSource,
+                mockNetworkHelper);
 
-    @After
-    public void tearDown() {
-        // TODO dataRepository.destroyInstance();
     }
 
     @Test

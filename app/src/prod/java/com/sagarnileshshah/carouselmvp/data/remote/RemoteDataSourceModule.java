@@ -12,6 +12,7 @@ import static com.sagarnileshshah.carouselmvp.data.remote.RemoteDataSource
         .QUERY_PARAM_VALUE_NO_JSON_CALLBACK;
 
 import com.facebook.stetho.okhttp3.StethoInterceptor;
+import com.sagarnileshshah.carouselmvp.data.DataSource;
 import com.sagarnileshshah.carouselmvp.util.di.ApplicationScope;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
 import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
@@ -33,7 +34,8 @@ public class RemoteDataSourceModule {
 
     @Provides
     @ApplicationScope
-    public RemoteDataSource provideRemoteDataSource(MainUiThread mainUiThread,
+    @Remote
+    public DataSource provideRemoteDataSource(MainUiThread mainUiThread,
             ThreadExecutor threadExecutor, ApiService apiService) {
         return new RemoteDataSource(mainUiThread, threadExecutor, apiService);
     }

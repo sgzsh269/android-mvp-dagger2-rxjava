@@ -1,5 +1,11 @@
 package com.sagarnileshshah.carouselmvp.ui.photodetail;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+import android.content.Context;
+
 import com.sagarnileshshah.carouselmvp.data.DataRepository;
 import com.sagarnileshshah.carouselmvp.data.DataSource;
 import com.sagarnileshshah.carouselmvp.data.models.comment.Comment;
@@ -17,12 +23,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
-import android.content.Context;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PhotoDetailPresenterTest {
@@ -45,16 +45,14 @@ public class PhotoDetailPresenterTest {
     @Captor
     private ArgumentCaptor<DataSource.GetCommentsCallback> getCommentsCallbackCaptor;
 
-    private PhotoDetailPresenter photoDetailPresenter;
+    private PhotoDetailContract.Presenter photoDetailPresenter;
     private Photo photo;
 
     @Before
     public void setup() {
-// TODO
-//        photoDetailPresenter = new PhotoDetailPresenter(mockView, mockDataRepository,
-//                mockThreadExecutor, mockMainUiThread);
-//        photo = new Photo();
-
+        photoDetailPresenter = new PhotoDetailPresenter(mockView, mockDataRepository,
+                mockThreadExecutor, mockMainUiThread);
+        photo = new Photo();
     }
 
     @Test

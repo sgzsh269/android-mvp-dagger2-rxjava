@@ -9,10 +9,10 @@ import dagger.Component;
 @Component(
         dependencies = {ApplicationComponent.class},
         modules = {PhotoDetailModule.class}
-)
+        )
 public interface PhotoDetailComponent {
 
-    PhotoDetailContract.Presenter getPhotoDetailPresenter();
+    //PhotoDetailContract.Presenter getPhotoDetailPresenter();
 
     void inject(PhotoDetailFragment photoDetailFragment);
 }
