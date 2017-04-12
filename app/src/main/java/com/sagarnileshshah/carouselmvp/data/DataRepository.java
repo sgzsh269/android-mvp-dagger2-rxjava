@@ -31,27 +31,20 @@ public class DataRepository {
         this.networkHelper = networkHelper;
     }
 
-    public void getPhotos(Context context, int page, final DataSource.GetPhotosCallback callback) {
+    public void getPhotos(Context context, int page, DataSource.Callback<List<Photo>> onSuccess,
+            DataSource.Callback<Throwable> onError) {
         if (networkHelper.isNetworkAvailable(context)) {
-            remoteDataSource.getPhotos(page, new DataSource.GetPhotosCallback() {
-                @Override
-                public void onSuccess(List<Photo> photos) {
-                    callback.onSuccess(photos);
-                    ((LocalDataSource) localDataSource).storePhotos(photos);
-                }
+            remoteDataSource.getPhotos(
+                    page,
+                    photos -> {
+                        onSuccess.call(photos);
+                        ((LocalDataSource) localDataSource).storePhotos(photos);
 
-                @Override
-                public void onFailure(Throwable throwable) {
-                    callback.onFailure(throwable);
-                }
-
-                @Override
-                public void onNetworkFailure() {
-                    callback.onNetworkFailure();
-                }
-            });
+                    },
+                    throwable -> onError.call(throwable)
+            );
         } else {
-            localDataSource.getPhotos(page, callback);
+            localDataSource.getPhotos(page, onSuccess, onError);
         }
     }
 

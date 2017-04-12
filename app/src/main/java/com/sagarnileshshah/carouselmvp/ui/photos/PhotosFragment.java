@@ -105,13 +105,9 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
 
         rvPhotos.addOnScrollListener(endlessScrollListener);
 
-        ItemClickSupport.addTo(rvPhotos).setOnItemClickListener(
-                new ItemClickSupport.OnItemClickListener() {
-                    @Override
-                    public void onItemClicked(RecyclerView recyclerView, int position, View v) {
-                        showDetailFragment(position);
-                    }
-                });
+        ItemClickSupport.addTo(rvPhotos).setOnItemClickListener((recyclerView, position, v) -> {
+            showDetailFragment(position);
+        });
 
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {

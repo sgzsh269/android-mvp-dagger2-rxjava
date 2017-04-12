@@ -4,16 +4,9 @@ import android.content.Context;
 
 import com.sagarnileshshah.carouselmvp.R;
 import com.sagarnileshshah.carouselmvp.data.DataRepository;
-import com.sagarnileshshah.carouselmvp.data.DataSource;
-import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
-import com.sagarnileshshah.carouselmvp.util.di.FragmentScope;
 import com.sagarnileshshah.carouselmvp.util.mvp.BasePresenter;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
 import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
-
-import java.util.List;
-
-import javax.inject.Inject;
 
 /**
  * The Presenter that fetches photo data by calling {@link DataRepository} at the request of
@@ -49,33 +42,24 @@ public class PhotosPresenter extends BasePresenter<PhotosContract.View> implemen
 
         view.setProgressBar(true);
 
-        dataRepository.getPhotos(context, page, new DataSource.GetPhotosCallback() {
-            @Override
-            public void onSuccess(List<Photo> photos) {
-                if (view != null) {
-                    view.showPhotos(photos);
-                    view.setProgressBar(false);
-                    view.shouldShowPlaceholderText();
+        dataRepository.getPhotos(
+                context,
+                page,
+                photos -> {
+                    if (view != null) {
+                        view.showPhotos(photos);
+                        view.setProgressBar(false);
+                        view.shouldShowPlaceholderText();
+                    }
+                },
+                throwable -> {
+                    if (view != null) {
+                        view.setProgressBar(false);
+                        view.showToastMessage(context.getString(R.string.error_msg));
+                        view.shouldShowPlaceholderText();
+                    }
                 }
-            }
+        );
 
-            @Override
-            public void onFailure(Throwable throwable) {
-                if (view != null) {
-                    view.setProgressBar(false);
-                    view.showToastMessage(context.getString(R.string.error_msg));
-                    view.shouldShowPlaceholderText();
-                }
-            }
-
-            @Override
-            public void onNetworkFailure() {
-                if (view != null) {
-                    view.setProgressBar(false);
-                    view.showToastMessage(context.getString(R.string.network_failure_msg));
-                    view.shouldShowPlaceholderText();
-                }
-            }
-        });
     }
 }

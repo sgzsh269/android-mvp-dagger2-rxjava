@@ -3,11 +3,18 @@ package com.sagarnileshshah.carouselmvp.data.remote;
 
 import com.sagarnileshshah.carouselmvp.BuildConfig;
 import com.sagarnileshshah.carouselmvp.data.DataSource;
+import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
+import com.sagarnileshshah.carouselmvp.data.models.photo.Response;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
 import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * The class for fetching data from Flickr API on a background thread and returning data via
@@ -41,42 +48,30 @@ public class RemoteDataSource extends DataSource {
     }
 
     @Override
-    public void getPhotos(int page, final GetPhotosCallback callback) {
+    public void getPhotos(int page, Callback<List<Photo>> onSuccess,
+            Callback<Throwable> onError) {
 
         Map<String, String> queryMap = new HashMap<>();
         queryMap.put(QUERY_PARAM_METHOD, PHOTOS_ENDPOINT);
         queryMap.put(QUERY_PARAM_PER_PAGE, QUERY_PARAM_VALUE_PER_PAGE);
         queryMap.put(QUERY_PARAM_PAGE, String.valueOf(page));
 
-        retrofit2.Call<com.sagarnileshshah.carouselmvp.data.models.photo.Response> call =
+        Observable<retrofit2.Response<Response>> call =
                 apiService.getPhotos(queryMap);
 
-        call.enqueue(
-                new retrofit2.Callback<com.sagarnileshshah.carouselmvp.data.models.photo
-                        .Response>() {
-                    @Override
-                    public void onResponse(
-                            retrofit2.Call<com.sagarnileshshah.carouselmvp.data.models.photo
-                                    .Response> call,
-                            retrofit2.Response<com.sagarnileshshah.carouselmvp.data.models.photo
-                                    .Response> response) {
-                        if (response.isSuccessful()) {
-                            com.sagarnileshshah.carouselmvp.data.models.photo.Response
-                                    photoResponse = response.body();
-                            callback.onSuccess(photoResponse.getPhotos().getPhoto());
-                        } else {
-                            callback.onFailure(new Throwable());
-                        }
-                    }
+        call.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        response -> {
+                            if (response.isSuccessful()) {
+                                Response photoResponse = response.body();
+                                onSuccess.call(photoResponse.getPhotos().getPhoto());
+                            } else {
+                                onError.call(new Throwable());
+                            }
+                        },
+                        throwable -> onError.call(throwable));
 
-                    @Override
-                    public void onFailure(
-                            retrofit2.Call<com.sagarnileshshah.carouselmvp.data.models.photo
-                                    .Response> call,
-                            Throwable t) {
-                        callback.onFailure(t);
-                    }
-                });
     }
 
     @Override
@@ -85,34 +80,21 @@ public class RemoteDataSource extends DataSource {
         Map<String, String> queryMap = new HashMap<>();
         queryMap.put(QUERY_PARAM_METHOD, COMMENTS_ENDPOINT);
 
-        retrofit2.Call<com.sagarnileshshah.carouselmvp.data.models.comment.Response> call =
-                apiService.getComments(photoId, queryMap);
+        Observable<retrofit2.Response<com.sagarnileshshah.carouselmvp.data.models.
+                comment.Response>> call = apiService.getComments(photoId, queryMap);
 
-        call.enqueue(
-                new retrofit2.Callback<com.sagarnileshshah.carouselmvp.data.models.comment
-                        .Response>() {
-                    @Override
-                    public void onResponse(
-                            retrofit2.Call<com.sagarnileshshah.carouselmvp.data.models.comment
-                                    .Response> call,
-                            retrofit2.Response<com.sagarnileshshah.carouselmvp.data.models
-                                    .comment.Response> response) {
-                        if (response.isSuccessful()) {
-                            com.sagarnileshshah.carouselmvp.data.models.comment.Response
-                                    commentsResponse = response.body();
-                            callback.onSuccess(commentsResponse.getComments().getComment());
-                        } else {
-                            callback.onFailure(new Throwable());
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(
-                            retrofit2.Call<com.sagarnileshshah.carouselmvp.data.models.comment
-                                    .Response> call,
-                            Throwable t) {
-                        callback.onFailure(t);
-                    }
-                });
+        call.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        response -> {
+                            if (response.isSuccessful()) {
+                                com.sagarnileshshah.carouselmvp.data.models.comment.Response
+                                        commentsResponse = response.body();
+                                callback.onSuccess(commentsResponse.getComments().getComment());
+                            } else {
+                                callback.onFailure(new Throwable());
+                            }
+                        },
+                        throwable -> callback.onFailure(throwable));
     }
 }

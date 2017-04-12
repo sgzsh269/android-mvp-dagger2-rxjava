@@ -15,7 +15,9 @@ import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * The class for fetching from and storing data into a local SQLite DB on a background thread and
@@ -32,26 +34,24 @@ public class LocalDataSource extends DataSource {
     }
 
     @Override
-    public void getPhotos(final int page, final GetPhotosCallback callback) {
+    public void getPhotos(int page, Callback<List<Photo>> onSuccess,
+            Callback<Throwable> onError) {
 
-        threadExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                final List<Photo> photos = SQLite.select()
-                        .from(Photo.class)
-                        .limit(10)
-                        .offset((page - 1) * 10)
-                        .queryList();
+        Observable<List<Photo>> observable = Observable.fromCallable(() -> getPhotosFromDb(page));
+        observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        photos -> onSuccess.call(photos),
+                        throwable -> onError.call(throwable));
+    }
 
-
-                mainUiThread.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        callback.onSuccess(photos);
-                    }
-                });
-            }
-        });
+    private List<Photo> getPhotosFromDb(int page) {
+        List<Photo> photos = SQLite.select()
+                .from(Photo.class)
+                .limit(10)
+                .offset((page - 1) * 10)
+                .queryList();
+        return photos;
     }
 
     @Override

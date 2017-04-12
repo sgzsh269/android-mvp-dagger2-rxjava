@@ -23,26 +23,14 @@ public abstract class DataSource {
         this.threadExecutor = threadExecutor;
     }
 
-    public interface GetPhotosCallback {
-        void onSuccess(List<Photo> photos);
-
-        void onFailure(Throwable throwable);
-
-        void onNetworkFailure();
-
+    public interface Callback<T> {
+        void call(T t);
     }
 
-    public interface GetCommentsCallback {
+    public abstract void getPhotos(int page, Callback<List<Photo>> onSuccess,
+            Callback<Throwable> onError);
 
-        void onSuccess(List<Comment> comments);
+    public abstract void getComments(String photoId, Callback<List<Comment>> onSuccess,
+            Callback<Throwable> onError);
 
-        void onFailure(Throwable throwable);
-
-        void onNetworkFailure();
-
-    }
-
-    public abstract void getPhotos(int page, GetPhotosCallback callback);
-
-    public abstract void getComments(String photoId, GetCommentsCallback callback);
 }
