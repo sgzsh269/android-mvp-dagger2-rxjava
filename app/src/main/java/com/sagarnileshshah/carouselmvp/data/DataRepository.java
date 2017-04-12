@@ -49,27 +49,18 @@ public class DataRepository {
     }
 
     public void getComments(Context context, final Photo photo,
-            final DataSource.GetCommentsCallback callback) {
+            DataSource.Callback<List<Comment>> onSuccess,
+            DataSource.Callback<Throwable> onError) {
         if (networkHelper.isNetworkAvailable(context)) {
-            remoteDataSource.getComments(photo.getId(), new DataSource.GetCommentsCallback() {
-                @Override
-                public void onSuccess(List<Comment> comments) {
-                    callback.onSuccess(comments);
-                    ((LocalDataSource) localDataSource).storeComments(photo, comments);
-                }
-
-                @Override
-                public void onFailure(Throwable throwable) {
-                    callback.onFailure(throwable);
-                }
-
-                @Override
-                public void onNetworkFailure() {
-                    callback.onNetworkFailure();
-                }
-            });
+            remoteDataSource.getComments(
+                    photo.getId(),
+                    comments -> {
+                        onSuccess.call(comments);
+                        ((LocalDataSource) localDataSource).storeComments(photo, comments);
+                    },
+                    throwable -> onError.call(throwable));
         } else {
-            localDataSource.getComments(photo.getId(), callback);
+            localDataSource.getComments(photo.getId(), onSuccess, onError);
         }
     }
 }

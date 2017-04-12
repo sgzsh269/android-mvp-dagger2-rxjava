@@ -105,17 +105,10 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
 
         rvPhotos.addOnScrollListener(endlessScrollListener);
 
-        ItemClickSupport.addTo(rvPhotos).setOnItemClickListener((recyclerView, position, v) -> {
-            showDetailFragment(position);
-        });
+        ItemClickSupport.addTo(rvPhotos).setOnItemClickListener(
+                (recyclerView, position, v) -> showDetailFragment(position));
 
-
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refreshPhotos();
-            }
-        });
+        swipeRefreshLayout.setOnRefreshListener(() -> refreshPhotos());
 
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimaryDark, R.color.colorPrimary);
 

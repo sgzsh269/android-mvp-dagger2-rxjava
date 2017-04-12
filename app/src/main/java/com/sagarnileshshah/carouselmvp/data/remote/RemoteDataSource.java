@@ -3,6 +3,7 @@ package com.sagarnileshshah.carouselmvp.data.remote;
 
 import com.sagarnileshshah.carouselmvp.BuildConfig;
 import com.sagarnileshshah.carouselmvp.data.DataSource;
+import com.sagarnileshshah.carouselmvp.data.models.comment.Comment;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Response;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
@@ -75,7 +76,8 @@ public class RemoteDataSource extends DataSource {
     }
 
     @Override
-    public void getComments(String photoId, final GetCommentsCallback callback) {
+    public void getComments(String photoId, Callback<List<Comment>> onSuccess,
+            Callback<Throwable> onError) {
 
         Map<String, String> queryMap = new HashMap<>();
         queryMap.put(QUERY_PARAM_METHOD, COMMENTS_ENDPOINT);
@@ -90,11 +92,11 @@ public class RemoteDataSource extends DataSource {
                             if (response.isSuccessful()) {
                                 com.sagarnileshshah.carouselmvp.data.models.comment.Response
                                         commentsResponse = response.body();
-                                callback.onSuccess(commentsResponse.getComments().getComment());
+                                onSuccess.call(commentsResponse.getComments().getComment());
                             } else {
-                                callback.onFailure(new Throwable());
+                                onError.call(new Throwable());
                             }
                         },
-                        throwable -> callback.onFailure(throwable));
+                        throwable -> onError.call(throwable));
     }
 }
