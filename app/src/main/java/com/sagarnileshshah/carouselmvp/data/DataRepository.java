@@ -9,6 +9,11 @@ import com.sagarnileshshah.carouselmvp.util.NetworkHelper;
 
 import java.util.List;
 
+import rx.Observable;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
 /**
  * The primary class for the presenters that extend
  * {@link com.sagarnileshshah.carouselmvp.util.mvp.BasePresenter} to interact with
@@ -16,7 +21,7 @@ import java.util.List;
  * It is the middleman in front of all data sources such as
  * {@link com.sagarnileshshah.carouselmvp.data.remote.RemoteDataSource}
  * and {@link com.sagarnileshshah.carouselmvp.data.local.LocalDataSource} and delegates the work to
- * them depending on conditions such as network availability, etc.
+ * them.
  */
 public class DataRepository {
 
@@ -31,36 +36,44 @@ public class DataRepository {
         this.networkHelper = networkHelper;
     }
 
-    public void getPhotos(Context context, int page, DataSource.Callback<List<Photo>> onSuccess,
+    public Subscription getPhotos(Context context, int page,
+            DataSource.Callback<List<Photo>> onSuccess,
             DataSource.Callback<Throwable> onError) {
-        if (networkHelper.isNetworkAvailable(context)) {
-            remoteDataSource.getPhotos(
-                    page,
-                    photos -> {
-                        onSuccess.call(photos);
-                        ((LocalDataSource) localDataSource).storePhotos(photos);
 
-                    },
-                    throwable -> onError.call(throwable)
-            );
+        Observable<List<Photo>> observable;
+
+        if (networkHelper.isNetworkAvailable(context)) {
+            observable = remoteDataSource.getPhotos(page)
+                    .doOnNext(photos -> ((LocalDataSource) localDataSource).storePhotos(photos));
         } else {
-            localDataSource.getPhotos(page, onSuccess, onError);
+            observable = localDataSource.getPhotos(page);
         }
+
+        return observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        photos -> onSuccess.call(photos),
+                        throwable -> onError.call(throwable));
     }
 
-    public void getComments(Context context, final Photo photo,
+    public Subscription getComments(Context context, final Photo photo,
             DataSource.Callback<List<Comment>> onSuccess,
             DataSource.Callback<Throwable> onError) {
+
+        Observable<List<Comment>> observable;
         if (networkHelper.isNetworkAvailable(context)) {
-            remoteDataSource.getComments(
-                    photo.getId(),
-                    comments -> {
-                        onSuccess.call(comments);
-                        ((LocalDataSource) localDataSource).storeComments(photo, comments);
-                    },
-                    throwable -> onError.call(throwable));
+            observable = remoteDataSource.getComments(photo.getId())
+                    .doOnNext(comments ->
+                            ((LocalDataSource) localDataSource).storeComments(photo, comments));
+
         } else {
-            localDataSource.getComments(photo.getId(), onSuccess, onError);
+            observable = localDataSource.getComments(photo.getId());
         }
+        return observable.
+                subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        comments -> onSuccess.call(comments),
+                        throwable -> onError.call(throwable));
     }
 }

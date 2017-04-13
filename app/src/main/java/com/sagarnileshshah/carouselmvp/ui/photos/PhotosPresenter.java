@@ -8,6 +8,9 @@ import com.sagarnileshshah.carouselmvp.util.mvp.BasePresenter;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
 import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 
+import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
+
 /**
  * The Presenter that fetches photo data by calling {@link DataRepository} at the request of
  * its View "{@link PhotosContract.View}", and then delivers the data back to
@@ -17,7 +20,7 @@ import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
  * The Presenter subscribes to its View lifecycle by allowing
  * the View to call the Presenter's {@link #onViewActive(Object)} and {@link #onViewInactive()}
  * to reference/unreference its View. This allows its View to be GCed and prevents memory leaks.
- * The Presenter also checks if its View is active before calling any of its methods.
+ * The Presenter uses
  */
 public class PhotosPresenter extends BasePresenter<PhotosContract.View> implements
         PhotosContract.Presenter {
@@ -27,39 +30,32 @@ public class PhotosPresenter extends BasePresenter<PhotosContract.View> implemen
     private MainUiThread mainUiThread;
 
     public PhotosPresenter(PhotosContract.View view, DataRepository dataRepository,
-            ThreadExecutor threadExecutor, MainUiThread mainUiThread) {
+            ThreadExecutor threadExecutor, MainUiThread mainUiThread,
+            CompositeSubscription compositeSubscription) {
         this.view = view;
         this.dataRepository = dataRepository;
         this.threadExecutor = threadExecutor;
         this.mainUiThread = mainUiThread;
+        this.compositeSubscription = compositeSubscription;
     }
 
     @Override
     public void getPhotos(final Context context, int page) {
-        if (view == null) {
-            return;
-        }
-
         view.setProgressBar(true);
-
-        dataRepository.getPhotos(
+        Subscription subscription = dataRepository.getPhotos(
                 context,
                 page,
                 photos -> {
-                    if (view != null) {
                         view.showPhotos(photos);
                         view.setProgressBar(false);
                         view.shouldShowPlaceholderText();
-                    }
                 },
                 throwable -> {
-                    if (view != null) {
                         view.setProgressBar(false);
                         view.showToastMessage(context.getString(R.string.error_msg));
                         view.shouldShowPlaceholderText();
-                    }
                 }
         );
-
+        compositeSubscription.add(subscription);
     }
 }

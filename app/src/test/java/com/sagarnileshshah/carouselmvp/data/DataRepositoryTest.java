@@ -1,29 +1,34 @@
 package com.sagarnileshshah.carouselmvp.data;
 
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
 
+import com.sagarnileshshah.carouselmvp.testutil.RxJavaTestRunner;
 import com.sagarnileshshah.carouselmvp.data.local.LocalDataSource;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
 import com.sagarnileshshah.carouselmvp.data.remote.RemoteDataSource;
 import com.sagarnileshshah.carouselmvp.util.NetworkHelper;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@RunWith(MockitoJUnitRunner.class)
+import rx.Observable;
+import rx.Scheduler;
+import rx.android.plugins.RxAndroidPlugins;
+import rx.android.plugins.RxAndroidSchedulersHook;
+import rx.schedulers.Schedulers;
+
+@RunWith(RxJavaTestRunner.class)
 public class DataRepositoryTest {
 
     @Mock
@@ -39,46 +44,58 @@ public class DataRepositoryTest {
     Context mockContext;
 
     @Mock
-    DataSource.GetPhotosCallback mockGetPhotosCallback;
+    DataSource.Callback<List<Photo>> mockOnSuccess;
 
-    @Captor
-    ArgumentCaptor<DataSource.GetPhotosCallback> getPhotosCallbackCaptor;
+    @Mock
+    DataSource.Callback<Throwable> mockOnError;
 
-    private DataRepository dataRepository;
+    @Mock
+    List<Photo> mockPhotos;
+
+    DataRepository dataRepository;
 
     @Before
     public void setup() {
         dataRepository = new DataRepository(mockRemoteDataSource, mockLocalDataSource,
                 mockNetworkHelper);
+        RxAndroidPlugins.getInstance().registerSchedulersHook(new RxAndroidSchedulersHook() {
+            @Override
+            public Scheduler getMainThreadScheduler() {
+                return Schedulers.immediate();
+            }
+        });
+    }
 
+    @After
+    public void tearDown() {
+        RxAndroidPlugins.getInstance().reset();
     }
 
     @Test
-    public void getPhotos_shouldCallRemoteDataSourceAndStoreLocally() {
-        int page = 1;
+    public void getPhotos_shouldGetFromRemoteDataSourceAndStoreLocally() {
         when(mockNetworkHelper.isNetworkAvailable(mockContext)).thenReturn(true);
+        when(mockRemoteDataSource.getPhotos(anyInt())).thenReturn(Observable.just(mockPhotos));
 
-        dataRepository.getPhotos(mockContext, page, mockGetPhotosCallback);
+        dataRepository.getPhotos(mockContext, anyInt(), mockOnSuccess, mockOnError);
 
-        verify(mockRemoteDataSource).getPhotos(eq(page), getPhotosCallbackCaptor.capture());
-
-        List<Photo> photos = new ArrayList<>();
-        getPhotosCallbackCaptor.getValue().onSuccess(photos);
-
-        verify(mockLocalDataSource).storePhotos(photos);
-        verify(mockGetPhotosCallback).onSuccess(photos);
+        verify(mockRemoteDataSource).getPhotos(anyInt());
+        verify(mockLocalDataSource).storePhotos(mockPhotos);
+        verify(mockOnSuccess).call(mockPhotos);
+        verify(mockOnError, never()).call(any(Throwable.class));
     }
 
     @Test
-    public void getPhotos_shouldCallLocalDataSource() {
-        int page = 1;
+    public void getPhotos_shouldGetFromLocalDataSource() {
         when(mockNetworkHelper.isNetworkAvailable(mockContext)).thenReturn(false);
+        when(mockLocalDataSource.getPhotos(anyInt())).thenReturn(Observable.just(mockPhotos));
 
-        dataRepository.getPhotos(mockContext, page, mockGetPhotosCallback);
+        dataRepository.getPhotos(mockContext, anyInt(), mockOnSuccess, mockOnError);
 
-        verify(mockRemoteDataSource, never()).getPhotos(eq(page),
-                getPhotosCallbackCaptor.capture());
-        verify(mockLocalDataSource).getPhotos(page, mockGetPhotosCallback);
+        verify(mockRemoteDataSource, never()).getPhotos(anyInt());
+        verify(mockLocalDataSource, never()).storePhotos(mockPhotos);
+        verify(mockLocalDataSource).getPhotos(anyInt());
+        verify(mockOnSuccess).call(mockPhotos);
+        verify(mockOnError, never()).call(any(Throwable.class));
     }
 
 }

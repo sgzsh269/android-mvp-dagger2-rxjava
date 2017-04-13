@@ -1,11 +1,14 @@
 package com.sagarnileshshah.carouselmvp.ui.photodetail;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import android.content.Context;
 
+import com.sagarnileshshah.carouselmvp.R;
 import com.sagarnileshshah.carouselmvp.data.DataRepository;
 import com.sagarnileshshah.carouselmvp.data.DataSource;
 import com.sagarnileshshah.carouselmvp.data.models.comment.Comment;
@@ -21,10 +24,13 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import rx.Subscription;
+import rx.subscriptions.CompositeSubscription;
+
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("unchecked")
 public class PhotoDetailPresenterTest {
 
     @Mock
@@ -42,52 +48,54 @@ public class PhotoDetailPresenterTest {
     @Mock
     private Context mockContext;
 
+    @Mock
+    private Photo mockPhoto;
+
+    @Mock
+    private List<Comment> mockComments;
+
+    @Mock
+    Subscription mockSubscription;
+
     @Captor
-    private ArgumentCaptor<DataSource.GetCommentsCallback> getCommentsCallbackCaptor;
+    private ArgumentCaptor<DataSource.Callback<List<Comment>>> onSuccessCaptor;
+
+    @Captor
+    private ArgumentCaptor<DataSource.Callback<Throwable>> onErrorCaptor;
 
     private PhotoDetailContract.Presenter photoDetailPresenter;
-    private Photo photo;
+    private CompositeSubscription mockCompositeSubscription = new CompositeSubscription();
 
     @Before
     public void setup() {
         photoDetailPresenter = new PhotoDetailPresenter(mockView, mockDataRepository,
-                mockThreadExecutor, mockMainUiThread);
-        photo = new Photo();
+                mockThreadExecutor, mockMainUiThread, mockCompositeSubscription);
     }
 
     @Test
-    public void getComments_testWithActiveView() {
+    public void getComments_testCallback() {
+        String errorMsg = "ERROR";
+        when(mockDataRepository.getComments(any(Context.class), any(Photo.class),
+                any(DataSource.Callback.class), any(DataSource.Callback.class)))
+                .thenReturn(mockSubscription);
 
-        photoDetailPresenter.getComments(mockContext, photo);
+        when(mockContext.getString(R.string.error_msg)).thenReturn(errorMsg);
 
-        verify(mockView).setProgressBar(true);
-        verify(mockDataRepository).getComments(eq(mockContext), eq(photo),
-                getCommentsCallbackCaptor.capture());
-
-        DataSource.GetCommentsCallback getCommentsCallback = getCommentsCallbackCaptor.getValue();
-
-        List<Comment> comments = new ArrayList<>();
-        photoDetailPresenter.onViewActive(mockView);
-        getCommentsCallback.onSuccess(comments);
-        verify(mockView).showComments(comments);
-        verify(mockView).setProgressBar(false);
-    }
-
-    @Test
-    public void getComments_testWithNonActiveView() {
-
-        photoDetailPresenter.getComments(mockContext, photo);
+        photoDetailPresenter.getComments(mockContext, mockPhoto);
 
         verify(mockView).setProgressBar(true);
-        verify(mockDataRepository).getComments(eq(mockContext), eq(photo),
-                getCommentsCallbackCaptor.capture());
+        verify(mockDataRepository).getComments(eq(mockContext), eq(mockPhoto),
+                onSuccessCaptor.capture(),
+                onErrorCaptor.capture());
 
-        DataSource.GetCommentsCallback getCommentsCallback = getCommentsCallbackCaptor.getValue();
+        onSuccessCaptor.getValue().call(mockComments);
+        onErrorCaptor.getValue().call(new Throwable());
 
-        List<Comment> comments = new ArrayList<>();
-        photoDetailPresenter.onViewInactive();
-        getCommentsCallback.onSuccess(comments);
-        verify(mockView, never()).showComments(comments);
-        verify(mockView, never()).setProgressBar(false);
+        verify(mockView).showComments(mockComments);
+        verify(mockView, times(2)).setProgressBar(false);
+        verify(mockView, times(2)).shouldShowPlaceholderText();
+        verify(mockContext).getString(R.string.error_msg);
+        verify(mockView).showToastMessage(errorMsg);
     }
+
 }

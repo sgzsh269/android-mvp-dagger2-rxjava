@@ -1,6 +1,7 @@
-### Sample app to show basics of MVP with Dagger 2.
+#### Sample app to show basics of MVP + Dagger2 + RxJava + Retrolambda. This app is based off the app - [MVP with Dagger](https://github.com/sgzsh269/android-mvp-with-dagger2).
+#### Compare the Presenters and the Data layer between the 2 apps to see the true benefit of RxJava and Retrolambda! 
 
-### The sample app fetches and displays the interesting photos and their comments for the most recent day from the [Flickr API](https://www.flickr.com/services/api/).
+#### The sample app fetches and displays the interesting photos and their comments for the most recent day from the [Flickr API](https://www.flickr.com/services/api/).
 
 ### App Demo
 ![Carousel Demo](/carousel_demo.gif)

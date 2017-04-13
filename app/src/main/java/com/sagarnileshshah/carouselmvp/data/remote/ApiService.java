@@ -17,7 +17,7 @@ import rx.Observable;
 public interface ApiService {
 
     @GET("services/rest")
-    Observable<retrofit2.Response<Response>> getPhotos(@QueryMap Map<String, String> queryMap);
+    Observable<Response> getPhotos(@QueryMap Map<String, String> queryMap);
 
     @GET("services/rest")
     Observable<retrofit2.Response<com.sagarnileshshah.carouselmvp.data.models.

@@ -3,7 +3,6 @@ package com.sagarnileshshah.carouselmvp.data.local;
 
 import com.raizlabs.android.dbflow.config.DatabaseDefinition;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
-import com.raizlabs.android.dbflow.structure.database.transaction.Transaction;
 import com.sagarnileshshah.carouselmvp.data.DataSource;
 import com.sagarnileshshah.carouselmvp.data.models.comment.Comment;
 import com.sagarnileshshah.carouselmvp.data.models.comment.Comment_Table;
@@ -14,12 +13,11 @@ import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 import java.util.List;
 
 import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
  * The class for fetching from and storing data into a local SQLite DB on a background thread and
- * returning data via callbacks on the main UI thread
+ * returning the relevant {@link Observable} for the data.
  */
 public class LocalDataSource extends DataSource {
 
@@ -29,18 +27,6 @@ public class LocalDataSource extends DataSource {
             DatabaseDefinition databaseDefinition) {
         super(mainUiThread, threadExecutor);
         this.databaseDefinition = databaseDefinition;
-    }
-
-    @Override
-    public void getPhotos(int page, Callback<List<Photo>> onSuccess,
-            Callback<Throwable> onError) {
-
-        Observable<List<Photo>> observable = Observable.fromCallable(() -> getPhotosFromDb(page));
-        observable.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        photos -> onSuccess.call(photos),
-                        throwable -> onError.call(throwable));
     }
 
     private List<Photo> getPhotosFromDb(int page) {
@@ -53,16 +39,8 @@ public class LocalDataSource extends DataSource {
     }
 
     @Override
-    public void getComments(final String photoId, Callback<List<Comment>> onSuccess,
-            Callback<Throwable> onError) {
-
-        Observable<List<Comment>> observable = Observable.fromCallable(
-                () -> getCommentsFromDb(photoId));
-        observable.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        comments -> onSuccess.call(comments),
-                        throwable -> onError.call(throwable));
+    public Observable<List<Photo>> getPhotos(int page) {
+        return Observable.fromCallable(() -> getPhotosFromDb(page));
 
     }
 
@@ -74,26 +52,39 @@ public class LocalDataSource extends DataSource {
         return comments;
     }
 
+    @Override
+    public Observable<List<Comment>> getComments(String photoId) {
+        return Observable.fromCallable(() -> getCommentsFromDb(photoId));
+    }
 
     public void storePhotos(final List<Photo> photos) {
-        Transaction transaction = databaseDefinition.beginTransactionAsync(
-                databaseWrapper -> {
-                    for (Photo photo : photos) {
-                        photo.save();
-                    }
-                }).build();
 
-        transaction.execute();
+        Observable.fromCallable(() -> savePhotos(photos))
+                .subscribeOn(Schedulers.io())
+                .publish()
+                .connect();
+    }
+
+    private boolean savePhotos(List<Photo> photos) {
+        for (Photo photo : photos) {
+            photo.save();
+        }
+        return true;
     }
 
     public void storeComments(final Photo photo, final List<Comment> comments) {
-        Transaction transaction = databaseDefinition.beginTransactionAsync(
-                databaseWrapper -> {
-                    for (Comment comment : comments) {
-                        comment.setPhoto(photo);
-                        comment.save();
-                    }
-                }).build();
-        transaction.execute();
+
+        Observable.fromCallable(() -> saveComments(photo, comments))
+                .subscribeOn(Schedulers.io())
+                .publish()
+                .connect();
+    }
+
+    private boolean saveComments(Photo photo, List<Comment> comments) {
+        for (Comment comment : comments) {
+            comment.setPhoto(photo);
+            comment.save();
+        }
+        return true;
     }
 }

@@ -5,7 +5,6 @@ import com.sagarnileshshah.carouselmvp.BuildConfig;
 import com.sagarnileshshah.carouselmvp.data.DataSource;
 import com.sagarnileshshah.carouselmvp.data.models.comment.Comment;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
-import com.sagarnileshshah.carouselmvp.data.models.photo.Response;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
 import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 
@@ -14,12 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 /**
- * The class for fetching data from Flickr API on a background thread and returning data via
- * callbacks on the main UI thread
+ * The class for fetching data from Flickr API on a background thread and returning the relevant
+ * {@link Observable} for the data.
  */
 public class RemoteDataSource extends DataSource {
 
@@ -49,54 +46,23 @@ public class RemoteDataSource extends DataSource {
     }
 
     @Override
-    public void getPhotos(int page, Callback<List<Photo>> onSuccess,
-            Callback<Throwable> onError) {
-
+    public Observable<List<Photo>> getPhotos(int page) {
         Map<String, String> queryMap = new HashMap<>();
         queryMap.put(QUERY_PARAM_METHOD, PHOTOS_ENDPOINT);
         queryMap.put(QUERY_PARAM_PER_PAGE, QUERY_PARAM_VALUE_PER_PAGE);
         queryMap.put(QUERY_PARAM_PAGE, String.valueOf(page));
 
-        Observable<retrofit2.Response<Response>> call =
-                apiService.getPhotos(queryMap);
-
-        call.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        response -> {
-                            if (response.isSuccessful()) {
-                                Response photoResponse = response.body();
-                                onSuccess.call(photoResponse.getPhotos().getPhoto());
-                            } else {
-                                onError.call(new Throwable());
-                            }
-                        },
-                        throwable -> onError.call(throwable));
-
+        return apiService.getPhotos(queryMap)
+                .flatMap(response -> Observable.just(response.getPhotos().getPhoto()));
     }
 
     @Override
-    public void getComments(String photoId, Callback<List<Comment>> onSuccess,
-            Callback<Throwable> onError) {
+    public Observable<List<Comment>> getComments(String photoId) {
 
         Map<String, String> queryMap = new HashMap<>();
         queryMap.put(QUERY_PARAM_METHOD, COMMENTS_ENDPOINT);
 
-        Observable<retrofit2.Response<com.sagarnileshshah.carouselmvp.data.models.
-                comment.Response>> call = apiService.getComments(photoId, queryMap);
-
-        call.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        response -> {
-                            if (response.isSuccessful()) {
-                                com.sagarnileshshah.carouselmvp.data.models.comment.Response
-                                        commentsResponse = response.body();
-                                onSuccess.call(commentsResponse.getComments().getComment());
-                            } else {
-                                onError.call(new Throwable());
-                            }
-                        },
-                        throwable -> onError.call(throwable));
+        return apiService.getComments(photoId, queryMap)
+                .flatMap(response -> Observable.just(response.body().getComments().getComment()));
     }
 }

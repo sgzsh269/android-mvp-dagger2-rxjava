@@ -62,6 +62,16 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
 
     private PhotosComponent photosComponent;
 
+    /**
+     * To track if the fragment has been newly created. This can be used to manage operations that
+     * should only be run once when fragment is created.
+     * This check originated because of the situation that when a Fragment is displayed through
+     * {@link android.support.v4.app.FragmentTransaction#replace(int, Fragment)} and popped from the
+     * backstack, the {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)} method and
+     * subsequent lifecycle methods are called again
+     */
+    private boolean isCreated;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,8 +121,6 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
         swipeRefreshLayout.setOnRefreshListener(() -> refreshPhotos());
 
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimaryDark, R.color.colorPrimary);
-
-        getPhotos(STARTING_PAGE_INDEX);
     }
 
     @Override
@@ -149,7 +157,13 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
     public void onResume() {
         super.onResume();
         presenter.onViewActive(this);
+        if (!isCreated) init();
         fragmentInteractionListener.resetToolBarScroll();
+    }
+
+    private void init() {
+        refreshPhotos();
+        isCreated = true;
     }
 
     @Override

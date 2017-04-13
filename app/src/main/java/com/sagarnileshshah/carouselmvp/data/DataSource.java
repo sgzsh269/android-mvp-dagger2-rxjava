@@ -7,6 +7,8 @@ import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 
 import java.util.List;
 
+import rx.Observable;
+
 /**
  * The interface that exposes fetching and storing data through helper methods. This is to be
  * implemented by all data sources such as
@@ -27,10 +29,8 @@ public abstract class DataSource {
         void call(T t);
     }
 
-    public abstract void getPhotos(int page, Callback<List<Photo>> onSuccess,
-            Callback<Throwable> onError);
+    public abstract Observable<List<Photo>> getPhotos(int page);
 
-    public abstract void getComments(String photoId, Callback<List<Comment>> onSuccess,
-            Callback<Throwable> onError);
+    public abstract Observable<List<Comment>> getComments(String photoId);
 
 }

@@ -106,6 +106,7 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
         rvComments.setLayoutManager(linearLayoutManager);
         rvComments.setNestedScrollingEnabled(true);
 
+        presenter.onViewActive(this);
         showPhoto(photo);
         presenter.getComments(getContext().getApplicationContext(), photo);
     }

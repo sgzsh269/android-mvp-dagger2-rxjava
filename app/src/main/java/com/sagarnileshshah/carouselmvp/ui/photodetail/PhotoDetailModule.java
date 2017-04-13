@@ -7,6 +7,7 @@ import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 
 import dagger.Module;
 import dagger.Provides;
+import rx.subscriptions.CompositeSubscription;
 
 @Module
 public class PhotoDetailModule {
@@ -21,13 +22,21 @@ public class PhotoDetailModule {
     @FragmentScope
     public PhotoDetailContract.Presenter providePhotoDetailPresenter(PhotoDetailContract.View view,
             DataRepository dataRepository,
-            ThreadExecutor threadExecutor, MainUiThread mainUiThread) {
-        return new PhotoDetailPresenter(view, dataRepository, threadExecutor, mainUiThread);
+            ThreadExecutor threadExecutor, MainUiThread mainUiThread,
+            CompositeSubscription compositeSubscription) {
+        return new PhotoDetailPresenter(view, dataRepository, threadExecutor, mainUiThread,
+                compositeSubscription);
     }
 
     @Provides
     @FragmentScope
     public PhotoDetailContract.View providePhotoDetailView() {
         return view;
+    }
+
+    @Provides
+    @FragmentScope
+    public CompositeSubscription provideCompositeSubcription() {
+        return new CompositeSubscription();
     }
 }
