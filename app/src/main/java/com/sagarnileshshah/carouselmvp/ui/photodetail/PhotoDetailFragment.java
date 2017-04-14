@@ -1,7 +1,5 @@
 package com.sagarnileshshah.carouselmvp.ui.photodetail;
 
-import static com.sagarnileshshah.carouselmvp.util.Properties.PHOTO_URL;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -11,10 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.sagarnileshshah.carouselmvp.R;
 import com.sagarnileshshah.carouselmvp.data.models.comment.Comment;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
@@ -41,22 +36,13 @@ import butterknife.ButterKnife;
  */
 public class PhotoDetailFragment extends BaseView implements PhotoDetailContract.View {
 
-    @BindView(R.id.ivPhoto)
-    ImageView ivPhoto;
-
-    @BindView(R.id.tvTitle)
-    TextView tvTitle;
-
     @BindView(R.id.rvComments)
     RecyclerView rvComments;
-
-    @BindView(R.id.tvPlaceholder)
-    TextView tvPlaceholder;
 
     @Inject
     PhotoDetailContract.Presenter presenter;
 
-    private CommentsRecyclerAdapter recyclerAdapter;
+    private PhotoDetailRecyclerAdapter recyclerAdapter;
     private EndlessRecyclerViewScrollListener endlessScrollListener;
     private Photo photo;
     private List<Comment> comments;
@@ -99,7 +85,7 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        recyclerAdapter = new CommentsRecyclerAdapter(comments);
+        recyclerAdapter = new PhotoDetailRecyclerAdapter(this, photo, comments);
         rvComments.setAdapter(recyclerAdapter);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
@@ -107,7 +93,6 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
         rvComments.setNestedScrollingEnabled(true);
 
         presenter.onViewActive(this);
-        showPhoto(photo);
         presenter.getComments(getContext().getApplicationContext(), photo);
     }
 
@@ -136,15 +121,6 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
     }
 
     @Override
-    public void showPhoto(Photo photo) {
-        tvTitle.setText(photo.getTitle());
-        String photoUrl = String.format(PHOTO_URL, photo.getFarm(), photo.getServer(),
-                photo.getId(), photo.getSecret());
-        Glide.with(this).load(photoUrl).placeholder(R.drawable.drawable_placeholder).error(
-                R.drawable.drawable_placeholder).into(ivPhoto);
-    }
-
-    @Override
     public void showComments(List<Comment> comments) {
         if (comments != null) {
             recyclerAdapter.addAll(comments);
@@ -154,11 +130,25 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
     @Override
     public void shouldShowPlaceholderText() {
         if (comments.isEmpty()) {
-            tvPlaceholder.setVisibility(View.VISIBLE);
-        } else {
-            tvPlaceholder.setVisibility(View.GONE);
+
+            /**
+             * Placeholder text will always be 2nd (index: 1) in the recyclerview list, below
+             * photo which is always at the top
+             */
+            recyclerAdapter.notifyItemChanged(1);
         }
     }
 
+    @Override
+    public void setProgressBar(boolean show) {
+        recyclerAdapter.setProgressBar(show);
 
+        /**
+         * Progress bar will be either at the end of the comments list (index: comments.size()),
+         * this it to support endless scrolling or if the comments list is empty then it will
+         * be 2nd (index: 1), below photo which is always at the top
+         */
+        int position = comments.isEmpty() ? 1 : comments.size();
+        recyclerAdapter.notifyItemChanged(position);
+    }
 }
