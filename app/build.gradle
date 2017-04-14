@@ -5,8 +5,11 @@ apply from: '../config/quality/quality.gradle'
 // Load sensitive project properties
 ext.projectProps = {
     def props = new Properties()
-    props.load(new FileInputStream(rootProject.file("project.properties")))
-    project.ext.projectProps = props
+    def file = rootProject.file("project.properties")
+    if (file.exists()) {
+        props.load(new FileInputStream(file))
+    }
+    return props
 }()
 
 android {
@@ -20,7 +23,7 @@ android {
         versionName "1.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.setUseSupportLibrary true
-        buildConfigField "String", "FLICKR_API_KEY", projectProps.flickrApiKey
+        buildConfigField "String", "FLICKR_API_KEY", projectProps.getProperty("flickrApiKey", "\"TEST\"")
     }
 
     buildTypes {
