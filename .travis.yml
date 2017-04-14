@@ -1,4 +1,5 @@
 language: android
+jdk: oraclejdk8
 android:
   components:
     - tools # to get the new `repository-11.xml`
@@ -7,8 +8,5 @@ android:
     - build-tools-25.0.2
     - android-25
     - extra-android-m2repository
-
-  jdk:
-    - oraclejdk8
 script:
    - ./gradlew build connectedCheck
