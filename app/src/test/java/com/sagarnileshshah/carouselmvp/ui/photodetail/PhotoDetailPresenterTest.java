@@ -13,6 +13,7 @@ import com.sagarnileshshah.carouselmvp.data.DataRepository;
 import com.sagarnileshshah.carouselmvp.data.DataSource;
 import com.sagarnileshshah.carouselmvp.data.models.comment.Comment;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
+import com.sagarnileshshah.carouselmvp.util.MiscHelper;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
 import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
 
@@ -57,6 +58,9 @@ public class PhotoDetailPresenterTest {
     @Mock
     Subscription mockSubscription;
 
+    @Mock
+    MiscHelper miscHelper;
+
     @Captor
     private ArgumentCaptor<DataSource.Callback<List<Comment>>> onSuccessCaptor;
 
@@ -69,7 +73,7 @@ public class PhotoDetailPresenterTest {
     @Before
     public void setup() {
         photoDetailPresenter = new PhotoDetailPresenter(mockView, mockDataRepository,
-                mockThreadExecutor, mockMainUiThread, mockCompositeSubscription);
+                mockThreadExecutor, mockMainUiThread, mockCompositeSubscription, miscHelper);
     }
 
     @Test

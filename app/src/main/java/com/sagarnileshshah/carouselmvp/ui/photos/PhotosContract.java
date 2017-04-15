@@ -23,5 +23,8 @@ interface PhotosContract {
     interface Presenter extends IBasePresenter<View> {
 
         void getPhotos(Context context, int page);
+
+        String getPhotoUrl(Photo photo);
+
     }
 }

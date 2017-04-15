@@ -1,6 +1,7 @@
 package com.sagarnileshshah.carouselmvp.ui.photos;
 
 import com.sagarnileshshah.carouselmvp.ApplicationComponent;
+import com.sagarnileshshah.carouselmvp.ui.mainactivity.MainActivityComponent;
 import com.sagarnileshshah.carouselmvp.util.di.FragmentScope;
 
 import dagger.Component;

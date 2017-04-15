@@ -4,6 +4,8 @@ import android.content.Context;
 
 import com.sagarnileshshah.carouselmvp.R;
 import com.sagarnileshshah.carouselmvp.data.DataRepository;
+import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
+import com.sagarnileshshah.carouselmvp.util.MiscHelper;
 import com.sagarnileshshah.carouselmvp.util.mvp.BasePresenter;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
 import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
@@ -28,15 +30,17 @@ public class PhotosPresenter extends BasePresenter<PhotosContract.View> implemen
     private DataRepository dataRepository;
     private ThreadExecutor threadExecutor;
     private MainUiThread mainUiThread;
+    private MiscHelper miscHelper;
 
     public PhotosPresenter(PhotosContract.View view, DataRepository dataRepository,
             ThreadExecutor threadExecutor, MainUiThread mainUiThread,
-            CompositeSubscription compositeSubscription) {
+            CompositeSubscription compositeSubscription, MiscHelper miscHelper) {
         this.view = view;
         this.dataRepository = dataRepository;
         this.threadExecutor = threadExecutor;
         this.mainUiThread = mainUiThread;
         this.compositeSubscription = compositeSubscription;
+        this.miscHelper = miscHelper;
     }
 
     @Override
@@ -57,5 +61,10 @@ public class PhotosPresenter extends BasePresenter<PhotosContract.View> implemen
                 }
         );
         compositeSubscription.add(subscription);
+    }
+
+    @Override
+    public String getPhotoUrl(Photo photo) {
+        return miscHelper.getPhotoUrl(photo);
     }
 }

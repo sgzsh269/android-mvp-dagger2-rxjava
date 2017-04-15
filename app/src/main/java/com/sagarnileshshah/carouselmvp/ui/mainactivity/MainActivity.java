@@ -1,11 +1,5 @@
-package com.sagarnileshshah.carouselmvp.ui;
+package com.sagarnileshshah.carouselmvp.ui.mainactivity;
 
-import static android.net.ConnectivityManager.CONNECTIVITY_ACTION;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.Fragment;
@@ -18,6 +12,8 @@ import com.sagarnileshshah.carouselmvp.R;
 import com.sagarnileshshah.carouselmvp.ui.photos.PhotosFragment;
 import com.sagarnileshshah.carouselmvp.util.FoaBaseActivity;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -27,7 +23,7 @@ import butterknife.ButterKnife;
  * and event subscriptions. This is based on the Fragment Oriented Architecture explained here
  * http://vinsol.com/blog/2014/09/15/advocating-fragment-oriented-applications-in-android/
  */
-public class MainActivity extends FoaBaseActivity {
+public class MainActivity extends FoaBaseActivity implements MainActivityContract.View {
 
     @BindView(R.id.fragmentPlaceHolder)
     FrameLayout fragmentPlaceholder;
@@ -41,7 +37,10 @@ public class MainActivity extends FoaBaseActivity {
     @BindView(R.id.appBarLayout)
     AppBarLayout appBarLayout;
 
-    private IntentFilter connectivityIntentFilter;
+    @Inject
+    MainActivityContract.Presenter mainActivityPresenter;
+
+    private MainActivityComponent mainActivityComponent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,19 +49,34 @@ public class MainActivity extends FoaBaseActivity {
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        showFragment(PhotosFragment.class);
-        connectivityIntentFilter = new IntentFilter(CONNECTIVITY_ACTION);
     }
+
+    private void initMainActivityComponent() {
+        mainActivityComponent = DaggerMainActivityComponent.builder()
+                .applicationComponent(applicationComponent)
+                .mainActivityModule(new MainActivityModule(this))
+                .build();
+
+        mainActivityComponent.inject(this);
+    }
+
+    private void releaseMainActivityComponent() {
+        mainActivityComponent = null;
+    }
+
 
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(connectivityBroadcastReceiver, connectivityIntentFilter);
+        initMainActivityComponent();
+        mainActivityPresenter.subscribeEventStream();
+        showFragment(PhotosFragment.class);
     }
 
     @Override
     protected void onPause() {
-        unregisterReceiver(connectivityBroadcastReceiver);
+        mainActivityPresenter.unsubscribeEventStream();
+        releaseMainActivityComponent();
         super.onPause();
     }
 
@@ -72,15 +86,12 @@ public class MainActivity extends FoaBaseActivity {
         appBarLayout.setExpanded(true, true);
     }
 
-
-    BroadcastReceiver connectivityBroadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!networkHelper.isNetworkAvailable(context)) {
-                tvOfflineMode.setVisibility(View.VISIBLE);
-            } else {
-                tvOfflineMode.setVisibility(View.GONE);
-            }
+    @Override
+    public void showOfflineMsg(boolean networkAvailable) {
+        if (networkAvailable) {
+            tvOfflineMode.setVisibility(View.GONE);
+        } else {
+            tvOfflineMode.setVisibility(View.VISIBLE);
         }
-    };
+    }
 }

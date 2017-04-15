@@ -2,6 +2,7 @@ package com.sagarnileshshah.carouselmvp;
 
 
 import com.sagarnileshshah.carouselmvp.util.BaseApplication;
+import com.sagarnileshshah.carouselmvp.util.MiscHelper;
 import com.sagarnileshshah.carouselmvp.util.di.ApplicationScope;
 
 import dagger.Module;
@@ -20,5 +21,11 @@ public class ApplicationModule {
     @ApplicationScope
     public BaseApplication provideApplication() {
         return baseApplication;
+    }
+
+    @Provides
+    @ApplicationScope
+    public MiscHelper provideMiscHelper() {
+        return new MiscHelper();
     }
 }

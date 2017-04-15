@@ -11,8 +11,6 @@ import android.view.MenuItem;
 import com.sagarnileshshah.carouselmvp.ApplicationComponent;
 import com.sagarnileshshah.carouselmvp.R;
 
-import javax.inject.Inject;
-
 /**
  * The abstract base container responsible for showing and destroying {@link Fragment} and handling
  * back and up navigation using the Fragment back stack. This is based on the
@@ -22,19 +20,17 @@ import javax.inject.Inject;
 public abstract class FoaBaseActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener, BaseFragmentInteractionListener {
 
-    @Inject
-    public NetworkHelper networkHelper;
+    protected ApplicationComponent applicationComponent;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         getSupportFragmentManager().addOnBackStackChangedListener(this);
-
-        initApplicationComponent();
     }
 
-    public <T extends Fragment> void showFragment(Class<T> fragmentClass, Bundle bundle,
+    @Override
+    public void showFragment(Class<? extends Fragment> fragmentClass, Bundle bundle,
             boolean addToBackStack) {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(
@@ -100,13 +96,33 @@ public abstract class FoaBaseActivity extends AppCompatActivity implements
         shouldShowActionBarUpButton();
     }
 
-    @Override
-    public ApplicationComponent getApplicationComponent() {
-        return ((BaseApplication) getApplication()).getApplicationComponent();
+    public ApplicationComponent initApplicationComponent() {
+        if (applicationComponent == null) {
+            applicationComponent = ((BaseApplication) getApplication()).getApplicationComponent();
+            applicationComponent.inject(this);
+        }
+        return applicationComponent;
     }
 
-    private void initApplicationComponent() {
-        ((BaseApplication) getApplication()).getApplicationComponent().inject(this);
+    private void releaseApplicationComponent() {
+        applicationComponent = null;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initApplicationComponent();
+    }
+
+    @Override
+    protected void onPause() {
+        releaseApplicationComponent();
+        super.onPause();
+    }
+
+    @Override
+    public ApplicationComponent getApplicationComponent() {
+        return applicationComponent;
     }
 }
 

@@ -1,7 +1,5 @@
 package com.sagarnileshshah.carouselmvp.ui.photodetail;
 
-import static com.sagarnileshshah.carouselmvp.util.Properties.PHOTO_URL;
-
 import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
@@ -38,9 +36,12 @@ public class PhotoDetailRecyclerAdapter extends
     private Photo photo;
     private Fragment fragment;
     private boolean showProgressBar;
+    private PhotoDetailContract.Presenter presenter;
 
-    public PhotoDetailRecyclerAdapter(Fragment fragment, Photo photo, List<Comment> comments) {
+    public PhotoDetailRecyclerAdapter(Fragment fragment, PhotoDetailContract.Presenter presenter,
+            Photo photo, List<Comment> comments) {
         this.fragment = fragment;
+        this.presenter = presenter;
         this.photo = photo;
         this.comments = comments;
     }
@@ -180,10 +181,8 @@ public class PhotoDetailRecyclerAdapter extends
 
         photoDetailViewHolder.tvTitle.setText(photo.getTitle());
 
-        String photoUrl = String.format(PHOTO_URL, photo.getFarm(), photo.getServer(),
-                photo.getId(), photo.getSecret());
-
-        Glide.with(fragment).load(photoUrl).placeholder(R.drawable.drawable_placeholder).error(
+        Glide.with(fragment).load(presenter.getPhotoUrl(photo)).placeholder(
+                R.drawable.drawable_placeholder).error(
                 R.drawable.drawable_placeholder).into(photoDetailViewHolder.ivPhoto);
     }
 

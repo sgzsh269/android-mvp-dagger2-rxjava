@@ -1,10 +1,13 @@
 package com.sagarnileshshah.carouselmvp.ui.photodetail;
 
+import static com.sagarnileshshah.carouselmvp.util.Properties.PHOTO_URL;
+
 import android.content.Context;
 
 import com.sagarnileshshah.carouselmvp.R;
 import com.sagarnileshshah.carouselmvp.data.DataRepository;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
+import com.sagarnileshshah.carouselmvp.util.MiscHelper;
 import com.sagarnileshshah.carouselmvp.util.mvp.BasePresenter;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
 import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
@@ -28,15 +31,17 @@ public class PhotoDetailPresenter extends BasePresenter<PhotoDetailContract.View
     private DataRepository dataRepository;
     private ThreadExecutor threadExecutor;
     private MainUiThread mainUiThread;
+    private MiscHelper miscHelper;
 
     public PhotoDetailPresenter(PhotoDetailContract.View view, DataRepository dataRepository,
             ThreadExecutor threadExecutor, MainUiThread mainUiThread,
-            CompositeSubscription compositeSubscription) {
+            CompositeSubscription compositeSubscription, MiscHelper miscHelper) {
         this.view = view;
         this.dataRepository = dataRepository;
         this.threadExecutor = threadExecutor;
         this.mainUiThread = mainUiThread;
         this.compositeSubscription = compositeSubscription;
+        this.miscHelper = miscHelper;
     }
 
     @Override
@@ -57,5 +62,10 @@ public class PhotoDetailPresenter extends BasePresenter<PhotoDetailContract.View
                         view.shouldShowPlaceholderText();
                 });
         compositeSubscription.add(subscription);
+    }
+
+    @Override
+    public String getPhotoUrl(Photo photo) {
+        return miscHelper.getPhotoUrl(photo);
     }
 }

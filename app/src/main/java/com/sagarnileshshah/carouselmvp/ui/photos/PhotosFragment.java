@@ -89,6 +89,10 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
         photosComponent.inject(this);
     }
 
+    private void releasePhotosComponent() {
+        photosComponent = null;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
@@ -99,7 +103,7 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        recyclerAdapter = new PhotosRecyclerAdapter(this, photos);
+        recyclerAdapter = new PhotosRecyclerAdapter(this, presenter, photos);
         rvPhotos.setAdapter(recyclerAdapter);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
@@ -156,6 +160,7 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
     @Override
     public void onResume() {
         super.onResume();
+        initPhotosComponent();
         presenter.onViewActive(this);
         if (!isCreated) init();
         fragmentInteractionListener.resetToolBarScroll();
@@ -168,6 +173,7 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
 
     @Override
     public void onPause() {
+        releasePhotosComponent();
         presenter.onViewInactive();
         super.onPause();
     }

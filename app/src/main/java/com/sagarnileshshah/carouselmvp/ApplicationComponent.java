@@ -2,9 +2,9 @@ package com.sagarnileshshah.carouselmvp;
 
 import com.sagarnileshshah.carouselmvp.data.DataRepository;
 import com.sagarnileshshah.carouselmvp.data.DataRepositoryModule;
-import com.sagarnileshshah.carouselmvp.ui.MainActivity;
 import com.sagarnileshshah.carouselmvp.util.BaseApplication;
 import com.sagarnileshshah.carouselmvp.util.FoaBaseActivity;
+import com.sagarnileshshah.carouselmvp.util.MiscHelper;
 import com.sagarnileshshah.carouselmvp.util.NetworkHelper;
 import com.sagarnileshshah.carouselmvp.util.di.ApplicationScope;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
@@ -22,6 +22,7 @@ public interface ApplicationComponent {
     MainUiThread getMainUiThread();
     DataRepository getDataRepository();
     NetworkHelper getNetworkHelper();
+    MiscHelper getMiscHelper();
 
     void inject(FoaBaseActivity foaBaseActivity);
 }

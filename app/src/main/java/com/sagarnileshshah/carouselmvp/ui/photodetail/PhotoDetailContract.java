@@ -24,5 +24,7 @@ interface PhotoDetailContract {
     interface Presenter extends IBasePresenter<View> {
 
         void getComments(Context context, Photo photo);
+
+        String getPhotoUrl(Photo photo);
     }
 }
