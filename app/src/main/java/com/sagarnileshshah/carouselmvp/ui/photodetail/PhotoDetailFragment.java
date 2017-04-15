@@ -73,6 +73,10 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
         photoDetailComponent.inject(this);
     }
 
+    private void releasePhotoDetailComponent() {
+        photoDetailComponent = null;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
@@ -85,15 +89,12 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        recyclerAdapter = new PhotoDetailRecyclerAdapter(this, photo, comments);
+        recyclerAdapter = new PhotoDetailRecyclerAdapter(this, presenter, photo, comments);
         rvComments.setAdapter(recyclerAdapter);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         rvComments.setLayoutManager(linearLayoutManager);
         rvComments.setNestedScrollingEnabled(true);
-
-        presenter.onViewActive(this);
-        presenter.getComments(getContext().getApplicationContext(), photo);
     }
 
     @Override
@@ -109,6 +110,7 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
 
     @Override
     public void onPause() {
+        releasePhotoDetailComponent();
         presenter.onViewInactive();
         super.onPause();
     }
@@ -116,8 +118,10 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
     @Override
     public void onResume() {
         super.onResume();
+        initPhotoDetailComponent();
         presenter.onViewActive(this);
         fragmentInteractionListener.resetToolBarScroll();
+        presenter.getComments(getContext().getApplicationContext(), photo);
     }
 
     @Override

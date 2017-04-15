@@ -9,16 +9,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 import com.bumptech.glide.Glide;
 import com.sagarnileshshah.carouselmvp.R;
 import com.sagarnileshshah.carouselmvp.data.models.photo.Photo;
 
 import java.util.List;
 
-import static com.sagarnileshshah.carouselmvp.util.Properties.PHOTO_URL;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * The {@link android.support.v7.widget.RecyclerView.Adapter} that renders and populates each photo
@@ -28,9 +26,12 @@ public class PhotosRecyclerAdapter extends RecyclerView.Adapter<PhotosRecyclerAd
 
     private List<Photo> photos;
     private Fragment fragment;
+    private PhotosContract.Presenter presenter;
 
-    public PhotosRecyclerAdapter(Fragment fragment, List<Photo> photos) {
+    public PhotosRecyclerAdapter(Fragment fragment, PhotosContract.Presenter presenter,
+            List<Photo> photos) {
         this.fragment = fragment;
+        this.presenter = presenter;
         this.photos = photos;
     }
 
@@ -64,12 +65,10 @@ public class PhotosRecyclerAdapter extends RecyclerView.Adapter<PhotosRecyclerAd
 
         Photo photo = photos.get(position);
 
-        String photoUrl = String.format(PHOTO_URL, photo.getFarm(), photo.getServer(),
-                photo.getId(), photo.getSecret());
-
         viewHolder.tvTitle.setText(photo.getTitle());
 
-        Glide.with(fragment).load(photoUrl).placeholder(R.drawable.drawable_placeholder).error(
+        Glide.with(fragment).load(presenter.getPhotoUrl(photo)).placeholder(
+                R.drawable.drawable_placeholder).error(
                 R.drawable.drawable_placeholder).into(viewHolder.ivPhoto);
     }
 

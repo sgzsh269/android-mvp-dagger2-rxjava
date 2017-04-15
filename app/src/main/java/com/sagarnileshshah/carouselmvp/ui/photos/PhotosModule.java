@@ -2,6 +2,7 @@ package com.sagarnileshshah.carouselmvp.ui.photos;
 
 
 import com.sagarnileshshah.carouselmvp.data.DataRepository;
+import com.sagarnileshshah.carouselmvp.util.MiscHelper;
 import com.sagarnileshshah.carouselmvp.util.di.FragmentScope;
 import com.sagarnileshshah.carouselmvp.util.threading.MainUiThread;
 import com.sagarnileshshah.carouselmvp.util.threading.ThreadExecutor;
@@ -24,9 +25,9 @@ public class PhotosModule {
     public PhotosContract.Presenter providePhotosPresenter(PhotosContract.View view,
             DataRepository dataRepository,
             ThreadExecutor threadExecutor, MainUiThread mainUiThread,
-            CompositeSubscription compositeSubscription) {
+            CompositeSubscription compositeSubscription, MiscHelper miscHelper) {
         return new PhotosPresenter(view, dataRepository, threadExecutor, mainUiThread,
-                compositeSubscription);
+                compositeSubscription, miscHelper);
     }
 
     @Provides

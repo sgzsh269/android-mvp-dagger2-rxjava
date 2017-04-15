@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
 import com.sagarnileshshah.carouselmvp.ApplicationComponent;
+import com.sagarnileshshah.carouselmvp.ui.mainactivity.MainActivityComponent;
 
 /**
  * Base {@link Fragment} listener interface to be implemented by the hosting
@@ -26,7 +27,7 @@ public interface BaseFragmentInteractionListener {
      * @param addToBackStack a boolean to add transaction to fragment back stack
      * @param <T> a generic type to indicate type/subclass of {@link Fragment}
      */
-    <T extends Fragment> void showFragment(Class<T> fragmentClass, Bundle bundle,
+    void showFragment(Class<? extends Fragment> fragmentClass, Bundle bundle,
             boolean addToBackStack);
 
     ApplicationComponent getApplicationComponent();
