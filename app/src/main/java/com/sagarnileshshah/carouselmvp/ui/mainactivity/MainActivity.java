@@ -16,7 +16,6 @@ import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import timber.log.Timber;
 
 /**
  * The container responsible for showing and destroying relevant {@link Fragment}, handling
@@ -58,19 +57,18 @@ public class MainActivity extends FoaBaseActivity implements MainActivityContrac
         }
     }
 
-
-    @Override
-    protected void onPause() {
-        releaseDependencyInjection();
-        unregisterEventListeners();
-        super.onPause();
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
         initDependencyInjection();
         registerEventListeners();
+    }
+
+    @Override
+    protected void onPause() {
+        unregisterEventListeners();
+        releaseDependencyInjection();
+        super.onPause();
     }
 
 
@@ -96,11 +94,11 @@ public class MainActivity extends FoaBaseActivity implements MainActivityContrac
 
 
     private void registerEventListeners() {
-        mainActivityPresenter.unsubscribeEventStream();
+        mainActivityPresenter.subscribeEventStream();
     }
 
     private void unregisterEventListeners() {
-        mainActivityPresenter.subscribeEventStream();
+        mainActivityPresenter.unsubscribeEventStream();
     }
 
 
