@@ -47,14 +47,4 @@ public class MainActivityModule {
         return mainActivity;
     }
 
-    @Provides
-    @ActivityScope
-    public ConnectivityBroadcastReceiver provideConnectivityBroadcastReceiver(
-            @ActivityContext Context context,
-            NetworkHelper networkHelper) {
-        IntentFilter intentFilter = new IntentFilter(CONNECTIVITY_ACTION);
-        PublishSubject<Boolean> publishSubject = PublishSubject.create();
-        return new ConnectivityBroadcastReceiver(context, networkHelper, intentFilter,
-                publishSubject);
-    }
 }
