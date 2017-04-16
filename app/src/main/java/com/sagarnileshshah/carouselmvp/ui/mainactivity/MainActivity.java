@@ -8,10 +8,12 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
 import com.sagarnileshshah.carouselmvp.R;
 import com.sagarnileshshah.carouselmvp.ui.photos.PhotosFragment;
 import com.sagarnileshshah.carouselmvp.util.FoaBaseActivity;
 
+import io.fabric.sdk.android.Fabric;
 import javax.inject.Inject;
 
 import butterknife.BindView;
@@ -45,6 +47,7 @@ public class MainActivity extends FoaBaseActivity implements MainActivityContrac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
