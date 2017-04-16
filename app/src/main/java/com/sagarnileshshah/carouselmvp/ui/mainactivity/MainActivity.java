@@ -16,6 +16,7 @@ import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import timber.log.Timber;
 
 /**
  * The container responsible for showing and destroying relevant {@link Fragment}, handling
@@ -49,35 +50,57 @@ public class MainActivity extends FoaBaseActivity implements MainActivityContrac
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        initDependencyInjection();
+        if (savedInstanceState == null) {
+            initViews();
+        } else {
+            showRetainedFragment();
+        }
     }
 
-    private void initMainActivityComponent() {
-        mainActivityComponent = DaggerMainActivityComponent.builder()
-                .applicationComponent(applicationComponent)
-                .mainActivityModule(new MainActivityModule(this))
-                .build();
 
-        mainActivityComponent.inject(this);
+    @Override
+    protected void onPause() {
+        releaseDependencyInjection();
+        unregisterEventListeners();
+        super.onPause();
     }
-
-    private void releaseMainActivityComponent() {
-        mainActivityComponent = null;
-    }
-
 
     @Override
     protected void onResume() {
         super.onResume();
-        initMainActivityComponent();
-        mainActivityPresenter.subscribeEventStream();
+        initDependencyInjection();
+        registerEventListeners();
+    }
+
+
+    protected void initDependencyInjection() {
+        super.initDependencyInjection();
+        if (mainActivityComponent == null) {
+            mainActivityComponent = DaggerMainActivityComponent.builder()
+                    .applicationComponent(applicationComponent)
+                    .mainActivityModule(new MainActivityModule(this))
+                    .build();
+
+            mainActivityComponent.inject(this);
+        }
+    }
+
+    private void initViews() {
         showFragment(PhotosFragment.class);
     }
 
-    @Override
-    protected void onPause() {
+    private void releaseDependencyInjection() {
+        mainActivityComponent = null;
+    }
+
+
+    private void registerEventListeners() {
         mainActivityPresenter.unsubscribeEventStream();
-        releaseMainActivityComponent();
-        super.onPause();
+    }
+
+    private void unregisterEventListeners() {
+        mainActivityPresenter.subscribeEventStream();
     }
 
 

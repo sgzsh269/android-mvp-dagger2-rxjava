@@ -54,75 +54,59 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            photo = Parcels.unwrap(getArguments().getParcelable(Properties.BUNDLE_KEY_PHOTO));
-        }
-        comments = new ArrayList<>();
-        setRetainInstance(true);
-        initPhotoDetailComponent();
-    }
-
-    public void initPhotoDetailComponent() {
-        photoDetailComponent = DaggerPhotoDetailComponent.builder()
-                .applicationComponent(fragmentInteractionListener.getApplicationComponent())
-                .photoDetailModule(new PhotoDetailModule(this))
-                .build();
-
-        photoDetailComponent.inject(this);
-    }
-
-    private void releasePhotoDetailComponent() {
-        photoDetailComponent = null;
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_photo_detail, container, false);
-        ButterKnife.bind(this, view);
-        return view;
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        recyclerAdapter = new PhotoDetailRecyclerAdapter(this, presenter, photo, comments);
-        rvComments.setAdapter(recyclerAdapter);
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        rvComments.setLayoutManager(linearLayoutManager);
-        rvComments.setNestedScrollingEnabled(true);
-    }
-
-    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         fragmentInteractionListener = (BaseFragmentInteractionListener) getActivity();
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        initMemberVariables();
+        setRetainInstance(true);
     }
 
     @Override
-    public void onPause() {
-        releasePhotoDetailComponent();
-        presenter.onViewInactive();
-        super.onPause();
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
+        initDependencyInjection();
+        initFromBundle();
+        View rootView = inflater.inflate(R.layout.fragment_photo_detail, container, false);
+        initViews(rootView);
+        return rootView;
+    }
+
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState == null) {
+            initData();
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        initPhotoDetailComponent();
+        initDependencyInjection();
         presenter.onViewActive(this);
         fragmentInteractionListener.resetToolBarScroll();
-        presenter.getComments(getContext().getApplicationContext(), photo);
     }
+
+    @Override
+    public void onPause() {
+        releaseDependencyInjection();
+        presenter.onViewInactive();
+        super.onPause();
+    }
+
+
+    @Override
+    public void onDetach() {
+        fragmentInteractionListener = null;
+        super.onDetach();
+    }
+
 
     @Override
     public void showComments(List<Comment> comments) {
@@ -154,5 +138,49 @@ public class PhotoDetailFragment extends BaseView implements PhotoDetailContract
          */
         int position = comments.isEmpty() ? 1 : comments.size();
         recyclerAdapter.notifyItemChanged(position);
+    }
+
+
+    private void initMemberVariables() {
+        comments = new ArrayList<>();
+    }
+
+    private void initFromBundle() {
+        if (getArguments() != null) {
+            Bundle container = getArguments();
+            Bundle wrappedBundle = container.getBundle(Properties.BUNDLE_KEY_WRAPPED_BUNDLE);
+            photo = Parcels.unwrap(wrappedBundle.getParcelable(Properties.BUNDLE_KEY_PHOTO));
+        }
+    }
+
+    private void initDependencyInjection() {
+        photoDetailComponent = DaggerPhotoDetailComponent.builder()
+                .applicationComponent(fragmentInteractionListener.getApplicationComponent())
+                .photoDetailModule(new PhotoDetailModule(this))
+                .build();
+
+        photoDetailComponent.inject(this);
+    }
+
+    private void releaseDependencyInjection() {
+        photoDetailComponent = null;
+    }
+
+    private void initViews(View rootView) {
+        ButterKnife.bind(this, rootView);
+        recyclerAdapter = new PhotoDetailRecyclerAdapter(this, presenter, photo, comments);
+        rvComments.setAdapter(recyclerAdapter);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        rvComments.setLayoutManager(linearLayoutManager);
+        rvComments.setNestedScrollingEnabled(true);
+    }
+
+    private void initData() {
+        if (!comments.isEmpty()) {
+            comments.clear();
+            recyclerAdapter.notifyItemRangeRemoved(1, comments.size());
+        }
+        presenter.getComments(getContext().getApplicationContext(), photo);
     }
 }
