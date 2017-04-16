@@ -70,67 +70,52 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
      * backstack, the {@link Fragment#onCreateView(LayoutInflater, ViewGroup, Bundle)} method and
      * subsequent lifecycle methods are called again
      */
-    private boolean isCreated;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        photos = new ArrayList<>();
-        setRetainInstance(true);
-        initPhotosComponent();
-    }
-
-    private void initPhotosComponent() {
-        photosComponent = DaggerPhotosComponent.builder()
-                .applicationComponent(fragmentInteractionListener.getApplicationComponent())
-                .photosModule(new PhotosModule(this))
-                .build();
-
-        photosComponent.inject(this);
-    }
-
-    private void releasePhotosComponent() {
-        photosComponent = null;
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_photos, container, false);
-        ButterKnife.bind(this, view);
-        return view;
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        recyclerAdapter = new PhotosRecyclerAdapter(this, presenter, photos);
-        rvPhotos.setAdapter(recyclerAdapter);
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-        rvPhotos.setLayoutManager(linearLayoutManager);
-
-        endlessScrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager,
-                STARTING_PAGE_INDEX) {
-            @Override
-            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                getPhotos(page);
-            }
-        };
-
-        rvPhotos.addOnScrollListener(endlessScrollListener);
-
-        ItemClickSupport.addTo(rvPhotos).setOnItemClickListener(
-                (recyclerView, position, v) -> showDetailFragment(position));
-
-        swipeRefreshLayout.setOnRefreshListener(() -> refreshPhotos());
-
-        swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimaryDark, R.color.colorPrimary);
-    }
+    private boolean isCreatedOnce;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         fragmentInteractionListener = (BaseFragmentInteractionListener) getActivity();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        initMemberVariables();
+        setRetainInstance(true);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
+        initDepedencyInjection();
+        View rootView = inflater.inflate(R.layout.fragment_photos, container, false);
+        initViews(rootView);
+        return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        // Only get data once and not on fragment restore such as on config change
+        if (savedInstanceState == null) {
+            initData();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        initDepedencyInjection();
+        presenter.onViewActive(this);
+        fragmentInteractionListener.resetToolBarScroll();
+    }
+
+    @Override
+    public void onPause() {
+        releaseDependecyInjection();
+        presenter.onViewInactive();
+        super.onPause();
     }
 
     @Override
@@ -157,26 +142,6 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
         }
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        initPhotosComponent();
-        presenter.onViewActive(this);
-        if (!isCreated) init();
-        fragmentInteractionListener.resetToolBarScroll();
-    }
-
-    private void init() {
-        refreshPhotos();
-        isCreated = true;
-    }
-
-    @Override
-    public void onPause() {
-        releasePhotosComponent();
-        presenter.onViewInactive();
-        super.onPause();
-    }
 
     private void getPhotos(int page) {
         presenter.getPhotos(getContext().getApplicationContext(), page);
@@ -199,6 +164,58 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
         bundle.putParcelable(Properties.BUNDLE_KEY_PHOTO, parcelable);
         fragmentInteractionListener.showFragment(PhotoDetailFragment.class, bundle,
                 true);
+    }
+
+
+    private void initMemberVariables() {
+        photos = new ArrayList<>();
+    }
+
+    private void initDepedencyInjection() {
+        photosComponent = DaggerPhotosComponent.builder()
+                .applicationComponent(fragmentInteractionListener.getApplicationComponent())
+                .photosModule(new PhotosModule(this))
+                .build();
+
+        photosComponent.inject(this);
+    }
+
+    private void initViews(View rootView) {
+        ButterKnife.bind(this, rootView);
+        recyclerAdapter = new PhotosRecyclerAdapter(this, presenter, photos);
+        rvPhotos.setAdapter(recyclerAdapter);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        rvPhotos.setLayoutManager(linearLayoutManager);
+
+        endlessScrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager,
+                STARTING_PAGE_INDEX) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                getPhotos(page);
+            }
+        };
+
+        rvPhotos.addOnScrollListener(endlessScrollListener);
+
+        ItemClickSupport.addTo(rvPhotos).setOnItemClickListener(
+                (recyclerView, position, v) -> showDetailFragment(position));
+
+        swipeRefreshLayout.setOnRefreshListener(() -> refreshPhotos());
+
+        swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimaryDark, R.color.colorPrimary);
+    }
+
+    private void initData() {
+        if (!isCreatedOnce) {
+            isCreatedOnce = true;
+            refreshPhotos();
+        }
+    }
+
+
+    private void releaseDependecyInjection() {
+        photosComponent = null;
     }
 
 }

@@ -7,6 +7,7 @@ import com.sagarnileshshah.carouselmvp.data.receivers.ConnectivityBroadcastRecei
 import com.sagarnileshshah.carouselmvp.util.mvp.BasePresenter;
 
 import rx.Observable;
+import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
 
 public class MainActivityPresenter implements MainActivityContract.Presenter {
@@ -26,7 +27,8 @@ public class MainActivityPresenter implements MainActivityContract.Presenter {
     @Override
     public void subscribeEventStream() {
         Observable<Boolean> observable = connectivityBroadcastReceiver.registerReceiver();
-        observable.subscribe(view::showOfflineMsg);
+        Subscription subscription = observable.subscribe(view::showOfflineMsg);
+        compositeSubscription.add(subscription);
     }
 
     @Override

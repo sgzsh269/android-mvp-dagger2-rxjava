@@ -27,6 +27,19 @@ public abstract class FoaBaseActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
 
         getSupportFragmentManager().addOnBackStackChangedListener(this);
+        initDependencyInjection();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initDependencyInjection();
+    }
+
+    @Override
+    protected void onPause() {
+        releaseDependencyInjection();
+        super.onPause();
     }
 
     @Override
@@ -35,16 +48,21 @@ public abstract class FoaBaseActivity extends AppCompatActivity implements
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         Fragment fragment = getSupportFragmentManager().findFragmentByTag(
                 fragmentClass.getSimpleName());
+        Bundle container;
         if (fragment == null) {
             try {
+                container = new Bundle();
+                container.putBundle(Properties.BUNDLE_KEY_WRAPPED_BUNDLE, bundle);
                 fragment = fragmentClass.newInstance();
-                fragment.setArguments(bundle);
+                fragment.setArguments(container);
             } catch (InstantiationException e) {
                 throw new RuntimeException("New Fragment should have been created", e);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("New Fragment should have been created", e);
             }
         }
+        container = fragment.getArguments();
+        container.putBundle(Properties.BUNDLE_KEY_WRAPPED_BUNDLE, bundle);
 
         fragmentTransaction.setCustomAnimations(R.anim.slide_in_right,
                 R.anim.slide_out_left, android.R.anim.slide_in_left,
@@ -62,6 +80,18 @@ public abstract class FoaBaseActivity extends AppCompatActivity implements
 
     public <T extends Fragment> void showFragment(Class<T> fragmentClass) {
         showFragment(fragmentClass, null, false);
+    }
+
+
+    public void showRetainedFragment() {
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragmentPlaceHolder);
+        if (fragment != null) {
+            fragmentTransaction.replace(R.id.fragmentPlaceHolder, fragment,
+                    fragment.getClass().getSimpleName());
+        }
+        fragmentTransaction.commit();
+        shouldShowActionBarUpButton();
     }
 
     public void popFragmentBackStack() {
@@ -90,34 +120,20 @@ public abstract class FoaBaseActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
-
     @Override
     public void onBackStackChanged() {
         shouldShowActionBarUpButton();
     }
 
-    public ApplicationComponent initApplicationComponent() {
+    protected void initDependencyInjection() {
         if (applicationComponent == null) {
             applicationComponent = ((BaseApplication) getApplication()).getApplicationComponent();
             applicationComponent.inject(this);
         }
-        return applicationComponent;
     }
 
-    private void releaseApplicationComponent() {
+    private void releaseDependencyInjection() {
         applicationComponent = null;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        initApplicationComponent();
-    }
-
-    @Override
-    protected void onPause() {
-        releaseApplicationComponent();
-        super.onPause();
     }
 
     @Override

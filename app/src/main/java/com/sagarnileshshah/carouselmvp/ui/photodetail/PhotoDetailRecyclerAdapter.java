@@ -200,11 +200,17 @@ public class PhotoDetailRecyclerAdapter extends
     }
 
     /**
-     * Adding 2 to accommodate the Photo item and progressbar/placeholder text
+     * Adding 2 to accommodate the Photo item and the progressbar/placeholder text if there are no
+     * comments. If there are comments, then just add 1 to accommodate the Photo item.
      */
     @Override
     public int getItemCount() {
-        return comments.size() + 2;
+        if (comments.isEmpty()) {
+            return 2;
+        } else {
+            return comments.size() + 1;
+        }
+
     }
 
     public void clear() {
