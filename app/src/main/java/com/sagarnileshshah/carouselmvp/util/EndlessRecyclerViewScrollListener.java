@@ -120,7 +120,7 @@ public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnS
 
     // Call this method whenever performing new searches
     public void resetState() {
-       init();
+        init();
     }
 
     // Defines the process for actually loading more data based on page
