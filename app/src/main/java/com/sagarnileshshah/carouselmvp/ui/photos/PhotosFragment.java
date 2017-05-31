@@ -51,6 +51,7 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
 
     public static final int STARTING_PAGE_INDEX = 1;
 
+    private int currentPage;
     private PhotosRecyclerAdapter recyclerAdapter;
     private List<Photo> photos;
     private EndlessRecyclerViewScrollListener endlessScrollListener;
@@ -169,6 +170,7 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
 
     private void initMemberVariables() {
         photos = new ArrayList<>();
+        currentPage = STARTING_PAGE_INDEX;
     }
 
     private void initDepedencyInjection() {
@@ -189,7 +191,7 @@ public class PhotosFragment extends BaseView implements PhotosContract.View {
         rvPhotos.setLayoutManager(linearLayoutManager);
 
         endlessScrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager,
-                STARTING_PAGE_INDEX) {
+                currentPage) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 getPhotos(page);

@@ -15,13 +15,13 @@ public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnS
     // before loading more.
     private int visibleThreshold = 5;
     // Sets the starting page index
-    private int startingPageIndex = 1;
+    private int startingPageIndex;
     // The current offset index of data you have loaded
-    private int currentPage = startingPageIndex;
+    private int currentPage;
     // The total number of items in the dataset after the last load
-    private int previousTotalItemCount = 0;
+    private int previousTotalItemCount;
     // True if we are still waiting for the last set of data to load.
-    private boolean loading = true;
+    private boolean loading;
 
 
     RecyclerView.LayoutManager layoutManager;
@@ -30,6 +30,7 @@ public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnS
             int startingPageIndex) {
         this.layoutManager = layoutManager;
         this.startingPageIndex = startingPageIndex;
+        init();
     }
 
     public EndlessRecyclerViewScrollListener(GridLayoutManager layoutManager,
@@ -37,6 +38,7 @@ public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnS
         this.layoutManager = layoutManager;
         visibleThreshold = visibleThreshold * layoutManager.getSpanCount();
         this.startingPageIndex = startingPageIndex;
+        init();
     }
 
     public EndlessRecyclerViewScrollListener(StaggeredGridLayoutManager layoutManager,
@@ -44,6 +46,14 @@ public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnS
         this.layoutManager = layoutManager;
         visibleThreshold = visibleThreshold * layoutManager.getSpanCount();
         this.startingPageIndex = startingPageIndex;
+        init();
+    }
+
+
+    private void init() {
+        currentPage = startingPageIndex;
+        previousTotalItemCount = 0;
+        loading = true;
     }
 
     public int getLastVisibleItem(int[] lastVisibleItemPositions) {
@@ -110,9 +120,7 @@ public abstract class EndlessRecyclerViewScrollListener extends RecyclerView.OnS
 
     // Call this method whenever performing new searches
     public void resetState() {
-        this.currentPage = this.startingPageIndex;
-        this.previousTotalItemCount = 0;
-        this.loading = true;
+       init();
     }
 
     // Defines the process for actually loading more data based on page
